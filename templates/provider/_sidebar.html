@@ -1,0 +1,57 @@
+<aside class="card border-0 shadow-sm rounded-4 h-100 bg-brand-gradient text-white">
+    <div class="card-body p-4 text-center">
+        {% if provider and provider.business_logo %}
+        <img src="{{ provider.business_logo.url }}" class="rounded-circle shadow mb-3"
+            style="width: 100px; height: 100px; object-fit: cover;">
+        {% else %}
+        <div class="bg-white text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow"
+            style="width: 100px; height: 100px;">
+            <span class="display-4 fw-bold font-poppins">{{provider.business_name|slice:":1"|default:user.email|slice:":1"|upper }}</span>
+        </div>
+        {% endif %}
+        <h4 class="fw-bold font-poppins">{{ provider.business_name|default:"Set up your profile" }}</h4>
+        <p class="mb-0 opacity-75 small">Service Provider Dashboard</p>
+        <hr class="border-light opacity-25 my-4">
+        <nav class="nav flex-column text-start gap-2">
+            <a class="nav-link text-white {% if request.resolver_match.url_name == 'provider_dashboard' %}fw-medium bg-white bg-opacity-10 rounded-pill{% else %}opacity-75{% endif %} px-3 py-2"
+                href="{% url 'provider_dashboard' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-grid-1x2-fill me-2" viewBox="0 0 16 16">
+                    <path
+                        d="M0 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm9 0a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V1zm0 9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5z" />
+                </svg>
+                Overview
+            </a>
+            <a class="nav-link text-white {% if 'provider/appointments' in request.path %}fw-medium bg-white bg-opacity-10 rounded-pill{% else %}opacity-75{% endif %} px-3 py-2"
+                href="{% url 'provider_appointments' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-calendar-check me-2" viewBox="0 0 16 16">
+                    <path
+                        d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z" />
+                    <path
+                        d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                </svg>
+                Appointments
+            </a>
+            <a class="nav-link text-white {% if 'provider/services' in request.path %}fw-medium bg-white bg-opacity-10 rounded-pill{% else %}opacity-75{% endif %} px-3 py-2"
+                href="{% url 'service_list' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-tags me-2" viewBox="0 0 16 16">
+                    <path
+                        d="M3 2v4.586l7 7L14.586 9l-7-7H3zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586V2z" />
+                    <path d="M5.5 5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z" />
+                </svg>
+                Services
+            </a>
+            <a class="nav-link text-white {% if request.resolver_match.url_name == 'manage_working_hours' %}fw-medium bg-white bg-opacity-10 rounded-pill{% else %}opacity-75{% endif %} px-3 py-2"
+                href="{% url 'manage_working_hours' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-clock me-2" viewBox="0 0 16 16">
+                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                </svg>
+                Working Hours
+            </a>
+        </nav>
+    </div>
+</aside>

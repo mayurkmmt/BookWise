@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container my-5" aria-labelledby="delete-heading">
+    <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden text-center">
+            <div class="card-body p-5 bg-white">
+                <div class="bg-danger text-white rounded-circle d-inline-flex justify-content-center align-items-center shadow-sm mb-4"
+                    style="width: 80px; height: 80px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                        class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z" />
+                    </svg>
+                </div>
+                <h3 id="delete-heading" class="card-title fw-bold font-poppins text-dark m-0">Permanently Delete?</h3>
+                <p class="text-muted mt-3 mb-4">Are you absolutely sure you want to delete the service <strong class="text-dark">"{{ object.title }}"</strong>? This action cannot be undone.</p>
+
+                {% if future_bookings_count and future_bookings_count > 0 %}
+                <div class="alert alert-danger text-start mb-4 shadow-sm border-danger rounded-4">
+                    <div class="d-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3 mt-1 text-danger" viewBox="0 0 16 16">
+                            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                        </svg>
+                        <div>
+                            <h5 class="alert-heading fw-bold font-poppins text-danger">Deletion Blocked</h5>
+                            <p class="mb-0 text-dark opacity-75">There are <strong>{{ future_bookings_count }} upcoming appointment(s)</strong> tied to this service. Please cancel or manage those bookings from your dashboard first before deleting this service, to avoid stranding client appointments.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-3 mt-4 pt-2 border-top">
+                        <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm fw-bold" {% if future_bookings_count and future_bookings_count > 0 %}disabled{% endif %}>Yes, Delete Service</button>
+                        <a href="{% url 'service_list' %}" class="btn btn-light rounded-pill fw-medium">Keep Service</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
+{% endblock %}

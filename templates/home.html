@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light rounded-5 shadow-sm" style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border: 1px solid rgba(255,255,255,0.4);" aria-labelledby="hero-title">
+    <div class="col-md-8 p-lg-5 mx-auto my-5">
+        <h1 class="display-3 fw-bold font-poppins mb-3" style="letter-spacing: -1px;">Premium Appointments. <br><span class="text-primary">Instantly.</span></h1>
+        <p class="lead fw-normal text-muted mb-4 px-md-5">Discover top-tier salons, consultants, and clinics near you. Book your next visit seamlessly with BookWise, the intelligent scheduling engine.</p>
+        <a class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm fw-medium" href="#providers">Explore Providers</a>
+    </div>
+</section>
+
+<!-- Providers Grid -->
+<section class="container py-5" id="providers" aria-labelledby="providers-title">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom pb-3 gap-3">
+        <div>
+            <h2 id="providers-title" class="fw-bold font-poppins m-0">Service Providers</h2>
+            <span class="text-muted">{% if request.GET.q %}Search results for "{{ request.GET.q }}"{% else %}Explore our partners{% endif %}</span>
+        </div>
+        <form method="GET" action="." class="d-flex" style="max-width: 400px; width: 100%;" onsubmit="const newQ = this.q.value.trim(); const currentQ = (new URLSearchParams(window.location.search).get('q') || '').trim(); if(newQ === currentQ) { event.preventDefault(); return false; }">
+            <div class="input-group shadow-sm" style="border-radius: 50rem;">
+                <input type="text" name="q" class="form-control border-0 bg-light px-4 py-2" placeholder="Search provider or service..." value="{{ request.GET.q|default:'' }}" style="border-top-left-radius: 50rem; border-bottom-left-radius: 50rem; box-shadow: none;">
+                <button class="btn btn-primary bg-gradient px-4 border-0" type="submit" aria-label="Search" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        {% for provider in providers %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 rounded-4 hover-lift overflow-hidden">
+                <div class="position-relative">
+                    {% if provider.business_logo %}
+                    <img src="{{ provider.business_logo.url }}" class="card-img-top w-100" alt="{{ provider.business_name }}" style="height: 220px; object-fit: cover;">
+                    {% else %}
+                    <div class="w-100 d-flex align-items-center justify-content-center" style="height: 220px; background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);">
+                        <span class="display-1 fw-bold text-white opacity-75">{{ provider.business_name|slice:":1" }}</span>
+                    </div>
+                    {% endif %}
+                    <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm rounded-pill px-3 py-2">Pro</span>
+                </div>
+
+                <div class="card-body px-4 pt-4 pb-3">
+                    <h4 class="card-title fw-bold text-dark font-poppins mb-2">{{ provider.business_name }}</h4>
+
+                    {% if provider.business_address %}
+                    <p class="text-muted small mb-2 d-flex align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-geo-alt me-1 text-primary" viewBox="0 0 16 16"><path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/><path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+                        {{ provider.business_address|truncatechars:40 }}
+                    </p>
+                    {% endif %}
+
+                    <p class="card-text text-muted mb-3" style="font-size: 0.95rem;">{{ provider.description|truncatewords:20|default:"Premium service provider." }}</p>
+                </div>
+
+                <div class="card-footer bg-white border-0 pb-4 pt-0 px-4 text-center">
+                    <a href="{% url 'provider_detail' pk=provider.pk %}" class="btn btn-primary bg-gradient rounded-pill w-100 py-2 shadow-sm fw-medium">View & Book Services</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 py-5 text-center">
+            <div class="p-5 mb-4 bg-white rounded-5 shadow-sm border border-light">
+              <div class="mb-3 text-muted">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                  </svg>
+              </div>
+              <h3 class="font-poppins fw-bold text-dark">No providers found.</h3>
+              <p class="text-muted">Check back later to see our newly onboarded partners!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4 mb-2">
+        <ul class="pagination justify-content-center m-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.previous_page_number }}{{ filter_query_string }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&laquo;</span>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link shadow-sm border-0 rounded-pill mx-1 bg-primary border-primary">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ num }}{{ filter_query_string }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.next_page_number }}{{ filter_query_string }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}

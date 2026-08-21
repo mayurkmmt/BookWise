@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<section class="container my-5" aria-labelledby="login-heading">
+    <div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="row g-0">
+                <div
+                    class="col-md-5 d-none d-md-flex flex-column justify-content-center align-items-center text-white bg-brand-gradient">
+                    <div class="p-5 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor"
+                            class="bi bi-person-fill-lock mb-4" viewBox="0 0 16 16">
+                            <path
+                                d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-9 8c0 1 1 1 1 1h5v-1a1.9 1.9 0 0 1 .01-.2 4.49 4.49 0 0 1 1.534-3.693C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4Zm7 0a1 1 0 0 1 1-1v-1a2 2 0 1 1 4 0v1a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-2Zm3-3a1 1 0 0 0-1 1v1h2v-1a1 1 0 0 0-1-1Z" />
+                        </svg>
+                        <h2 class="fw-bold font-poppins mb-3">Welcome Back</h2>
+                        <p class="lead opacity-75">Sign in to manage your appointments, edit your profile, and explore
+                            premium service providers.</p>
+                    </div>
+                </div>
+                <div class="col-md-7 p-5 bg-white">
+                    <h3 id="login-heading" class="card-title fw-bold font-poppins mb-4 text-dark">Log In</h3>
+                    <form method="post" class="needs-validation" novalidate id="loginForm">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit"
+                            class="btn btn-primary btn-lg w-100 rounded-pill mt-4 shadow-sm fw-bold">Sign In to
+                            Dashboard</button>
+                        <input type="hidden" name="next" value="{{ next|default:'/' }}">
+                    </form>
+                    <div class="text-center mt-5">
+                        <p class="mb-2"><a href="{% url 'password_reset' %}"
+                                class="text-decoration-none text-muted">Forgot your password?</a></p>
+                        <p class="text-muted">New to BookWise? <a href="{% url 'register' %}"
+                                class="text-decoration-none fw-bold text-primary">Get Started Here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('loginForm');
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    // Release the loading state created by base.html if validation fails natively
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    setTimeout(() => {
+                        if (submitBtn && submitBtn.hasAttribute('data-original-html')) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = submitBtn.getAttribute('data-original-html');
+                        }
+                    }, 10);
+                }
+                form.classList.add('was-validated');
+            }, false);
+        }
+    });
+</script>
+{% endblock %}

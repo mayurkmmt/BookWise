@@ -1,0 +1,106 @@
+from django.urls import path
+
+from .views import (
+    BookingSuccessView,
+    CustomerAppointmentDetailView,
+    CustomerAppointmentListView,
+    CustomerBookingEngineView,
+    CustomerCancelAppointmentView,
+    CustomerRescheduleEngineView,
+    GuestBookingOTPVerifyView,
+    GuestCancelAppointmentView,
+    GuestManageBookingView,
+    GuestRescheduleEngineView,
+    ProviderAppointmentDetailView,
+    ProviderAppointmentListView,
+    ProviderCustomerDetailView,
+    ProviderCustomerListView,
+    ServiceAvailableTimesView,
+    UpdateAppointmentStatusView,
+)
+
+urlpatterns = [
+    # Customer Booking Core logic
+    path(
+        "book/provider/<int:provider_id>/",
+        CustomerBookingEngineView.as_view(),
+        name="book_services",
+    ),
+    path(
+        "api/provider/<int:provider_id>/available-times/",
+        ServiceAvailableTimesView.as_view(),
+        name="api_available_times",
+    ),
+    path(
+        "book/success/<uuid:booking_reference>/",
+        BookingSuccessView.as_view(),
+        name="booking_success",
+    ),
+    path(
+        "book/guest-verify/",
+        GuestBookingOTPVerifyView.as_view(),
+        name="guest_otp_verify",
+    ),
+    path(
+        "guest/manage/<uuid:booking_reference>/",
+        GuestManageBookingView.as_view(),
+        name="guest_manage_appointment",
+    ),
+    path(
+        "guest/manage/<uuid:booking_reference>/cancel/",
+        GuestCancelAppointmentView.as_view(),
+        name="guest_cancel_appointment",
+    ),
+    path(
+        "guest/manage/<uuid:booking_reference>/reschedule/",
+        GuestRescheduleEngineView.as_view(),
+        name="guest_reschedule_appointment",
+    ),
+    # Customer Private Management Links
+    path(
+        "my-appointments/",
+        CustomerAppointmentListView.as_view(),
+        name="customer_appointments",
+    ),
+    path(
+        "my-appointments/detail/<int:pk>/",
+        CustomerAppointmentDetailView.as_view(),
+        name="customer_appointment_detail",
+    ),
+    path(
+        "my-appointments/<int:pk>/cancel/",
+        CustomerCancelAppointmentView.as_view(),
+        name="customer_cancel_appointment",
+    ),
+    path(
+        "my-appointments/<int:pk>/reschedule/",
+        CustomerRescheduleEngineView.as_view(),
+        name="customer_reschedule_appointment",
+    ),
+    # Provider flows
+    path(
+        "provider/appointments/",
+        ProviderAppointmentListView.as_view(),
+        name="provider_appointments",
+    ),
+    path(
+        "provider/appointments/<int:pk>/status/",
+        UpdateAppointmentStatusView.as_view(),
+        name="api_update_appointment_status",
+    ),
+    path(
+        "provider/appointments/detail/<int:pk>/",
+        ProviderAppointmentDetailView.as_view(),
+        name="provider_appointment_detail",
+    ),
+    path(
+        "provider/customers/",
+        ProviderCustomerListView.as_view(),
+        name="provider_customers",
+    ),
+    path(
+        "provider/customers/<str:email>/",
+        ProviderCustomerDetailView.as_view(),
+        name="provider_customer_detail",
+    ),
+]

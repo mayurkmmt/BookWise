@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="appointments-heading">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            {% include "accounts/_sidebar.html" %}
+        </div>
+
+        <!-- Main Logistics Panel -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <button type="button"
+                                    onclick="window.history.back()"
+                                    class="btn btn-light rounded-circle shadow-sm p-0 flex-shrink-0"
+                                    style="width: 40px; height: 40px; display: inline-flex; justify-content: center; align-items: center;"
+                                    title="Go Back">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                    class="bi bi-arrow-left" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd"
+                                        d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                </svg>
+
+                            </button>
+                            <div>
+                                <h3 id="appointments-heading" class="fw-bold font-poppins text-dark m-0">Appointment Details</h3>
+                                <p class="text-muted m-0 small mt-1">Ref: <span class="fw-bold text-dark">#{{ appointment.booking_reference }}</span> &bull; Review specific information regarding this booking.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 h-100">
+                                <h5 class="fw-bold font-poppins text-dark mb-3">Client Details</h5>
+                                <div class="mb-2">
+                                    <span class="text-muted small fw-bold">Name</span>
+                                    <p class="mb-0 fw-medium">
+                                        {% if appointment.customer_user %}
+                                            {{ appointment.customer_user.get_full_name|default:appointment.customer_user.email }}
+                                        {% else %}
+                                            {{ appointment.guest_name }} <span class="badge bg-secondary ms-1">Guest</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small fw-bold">Phone</span>
+                                    <p class="mb-0 fw-medium">{{ appointment.customer_user.phone_number|default:appointment.guest_phone_number|default:"N/A" }}</p>
+                                </div>
+                                <div class="">
+                                    <span class="text-muted small fw-bold">Email</span>
+                                    <p class="mb-0 fw-medium">{{ appointment.customer_user.email|default:appointment.guest_email }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 h-100">
+                                <h5 class="fw-bold font-poppins text-dark mb-3">Schedule Details</h5>
+                                <div class="mb-3">
+                                    <span class="text-muted small fw-bold">Date & Time</span>
+                                    <p class="mb-0 fw-bold text-primary">{{ appointment.date|date:"F jS, Y" }} @ {{ appointment.start_time|time:"h:iA" }}</p>
+                                    <p class="small text-muted mb-0">End Time: {{ appointment.end_time|time:"h:iA" }}</p>
+                                </div>
+
+                                <div class="">
+                                    <span class="text-muted small fw-bold d-block mb-1">Status</span>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm dropdown-toggle fw-bold shadow-sm rounded-pill px-3 py-1 text-center status-toggle
+                                            {% if appointment.status == 'pending' %}bg-warning bg-opacity-25 text-dark border-warning
+                                            {% elif appointment.status == 'confirmed' %}bg-success bg-opacity-10 text-success border-success
+                                            {% elif appointment.status == 'cancelled' %}bg-danger bg-opacity-10 text-danger border-danger
+                                            {% else %}bg-light text-muted border-secondary{% endif %}"
+                                            type="button" data-bs-toggle="dropdown" aria-expanded="false" style="max-width: 140px;">
+                                            {{ appointment.get_status_display }}
+                                        </button>
+                                        <ul class="dropdown-menu shadow border-0 rounded-4 p-2">
+                                            <li><a class="dropdown-item rounded-3 mb-1 status-action {% if appointment.status == 'confirmed' %}bg-success bg-opacity-25 text-success fw-bold{% else %}text-success{% endif %}" href="#" data-appt-id="{{ appointment.id }}" data-value="confirmed">Confirmed</a></li>
+                                            <li><a class="dropdown-item rounded-3 status-action {% if appointment.status == 'cancelled' %}bg-danger bg-opacity-25 text-danger fw-bold{% else %}text-danger{% endif %}" href="#" data-appt-id="{{ appointment.id }}" data-value="cancelled">Cancelled</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5 class="fw-bold font-poppins text-dark mb-3">Booked Services</h5>
+                        <div class="rounded-4 shadow-sm border">
+                            <ul class="list-group list-group-flush" style="max-height: 350px; overflow-y: auto;">
+                                {% for aps in appointment.appointment_services.all %}
+                                    <li class="list-group-item p-4 border-light d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if aps.service.image %}
+                                            <img src="{{ aps.service.image.url }}" alt="{{ aps.service.title }}" class="rounded-3 shadow-sm bg-white border" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center text-muted border border-dashed" style="width: 50px; height: 50px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-image" viewBox="0 0 16 16">
+                                                  <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                                  <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                                                </svg>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="fw-bold m-0">{{ aps.service.title }}</h6>
+                                                <small class="text-muted">{{ aps.service_duration }} min</small>
+                                            </div>
+                                        </div>
+                                        <span class="fw-bold text-primary">₹{{ aps.service_price }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="p-4 bg-light border-top d-flex justify-content-between align-items-center rounded-bottom-4">
+                                <h6 class="fw-bold m-0 text-dark">Total</h6>
+                                <h5 class="fw-bold m-0 text-dark">₹{{ appointment.total_price }}</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const actions = document.querySelectorAll('.status-action');
+        actions.forEach(action => {
+            action.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const dropdown = this.closest('.dropdown');
+                if (dropdown.dataset.processing === "true") return;
+                dropdown.dataset.processing = "true";
+
+                dropdown.querySelectorAll('.status-action').forEach(opt => {
+                    opt.style.pointerEvents = 'none';
+                    opt.classList.add('opacity-50');
+                });
+
+                const apptId = this.getAttribute('data-appt-id');
+                const newStatus = this.getAttribute('data-value');
+
+                const dropdownBtn = dropdown.querySelector('.dropdown-toggle');
+                dropdownBtn.disabled = true;
+                dropdownBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+                fetch(`/provider/appointments/${apptId}/status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(res => {
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        throw new Error("Validation failure");
+                    }
+                })
+                .catch(err => {
+                    alert("Permission Denied: Unable to execute status modification.");
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

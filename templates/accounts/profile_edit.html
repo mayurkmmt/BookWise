@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="edit-profile-heading">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            {% include 'accounts/_sidebar.html' %}
+        </div>
+
+        <!-- Main Form Panel -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <h3 id="edit-profile-heading" class="fw-bold font-poppins text-dark m-0">Update Profile Settings</h3>
+                                <p class="text-muted m-0 small mt-1">Ensure your contact details are accurate.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="profileForm">
+                        {% csrf_token %}
+
+                        <!-- Section: Personal Information -->
+                        <div class="p-4 bg-light rounded-4 mb-4 border border-light shadow-sm">
+                            <h5 class="fw-bold text-dark mb-4 font-poppins border-bottom pb-2">
+                                {% include 'icons/user.html' %}Account Details
+                            </h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    {{ form.email|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.phone_number|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if provider_form %}
+                        <!-- Section: Business Information -->
+                        <div class="p-4 bg-light rounded-4 mb-4 border border-light shadow-sm">
+                            <h5 class="fw-bold text-dark mb-4 font-poppins border-bottom pb-2">
+                                {% include 'icons/briefcase.html' %}Business Profile
+                            </h5>
+                            <div class="row g-4">
+                                <div class="col-md-12">
+                                    <div class="d-flex align-items-center mt-3">
+                                        <!-- Image Preview Container -->
+                                        <div class="position-relative me-4" style="width: 110px; height: 110px;">
+                                            <img id="logoPreview"
+                                                 src="{% if request.user.service_provider and request.user.service_provider.business_logo %}{{ request.user.service_provider.business_logo.url }}{% else %}https://placehold.co/120x120/e9ecef/a3a8ad?text=No+Logo{% endif %}"
+                                                 class="rounded-circle object-fit-cover shadow-sm border border-secondary border-opacity-25 bg-white"
+                                                 style="width: 110px; height: 110px;">
+
+                                            <!-- Edit Icon Overlay -->
+                                            <label for="id_business_logo" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex justify-content-center align-items-center shadow hover-lift m-0" style="width: 32px; height: 32px; cursor: pointer; transform: translate(-10%, 10%); transition: transform 0.2s ease;" title="Change Logo">
+                                                {% include 'icons/pencil.html' %}
+                                            </label>
+
+                                            <!-- Hidden File Input -->
+                                            <div class="d-none">
+                                                {{ provider_form.business_logo }}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h6 class="fw-bold mb-1 text-dark">Business Logo</h6>
+                                            <span class="small text-muted d-block">Click the pencil icon to upload a logo.</span>
+                                            <span class="small text-muted d-block">Instant preview (saves on submit).</span>
+
+                                            <div id="imageErrorMsg" class="text-danger small mt-2 fw-medium" style="display: none;">
+                                                Please upload a business logo.
+                                            </div>
+                                            {% if provider_form.business_logo.errors %}
+                                                <div class="text-danger small mt-2 fw-medium">
+                                                    {% for error in provider_form.business_logo.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    {{ provider_form.business_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-12">
+                                    {{ provider_form.business_address|as_crispy_field }}
+                                </div>
+                                <div class="col-md-12">
+                                    {{ provider_form.description|as_crispy_field }}
+                                </div>
+
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Error handling if non-field errors exist -->
+                        {% if form.non_field_errors or provider_form.non_field_errors %}
+                        <div class="alert alert-danger shadow-sm rounded-3">
+                            {{ form.non_field_errors }}
+                            {{ provider_form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4 pt-3 border-top border-secondary border-opacity-10">
+                            <button type="submit" class="btn btn-primary bg-gradient rounded-pill px-5 shadow-sm fw-bold">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Form Validation Logic
+        const form = document.getElementById('profileForm');
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Manually handle the hidden input feedback
+                    const imgInput = document.getElementById('id_business_logo');
+                    const imgError = document.getElementById('imageErrorMsg');
+                    if (imgInput && imgError) {
+                        imgError.style.display = imgInput.validity.valid ? 'none' : 'block';
+                    }
+
+                    // Release the loading state created by base.html if validation fails natively
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    setTimeout(() => {
+                        if (submitBtn && submitBtn.hasAttribute('data-original-html')) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = submitBtn.getAttribute('data-original-html');
+                        }
+                    }, 10);
+                }
+                form.classList.add('was-validated');
+            }, false);
+        }
+
+        // Logo Upload Preview
+        const logoUpload = document.getElementById("id_business_logo");
+        const logoPreview = document.getElementById("logoPreview");
+
+        if (logoUpload && logoPreview) {
+            logoUpload.addEventListener("change", function() {
+                const file = this.files[0];
+                const imgError = document.getElementById('imageErrorMsg');
+                if (imgError) imgError.style.display = 'none';
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        logoPreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

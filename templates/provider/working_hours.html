@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="working-hours-heading">
+    <div class="row">
+    <!-- Provider Sidebar (dynamically included) -->
+    <div class="col-lg-3 mb-4">
+        {% include "accounts/_sidebar.html" %}
+    </div>
+
+    <!-- Main Logistics Panel -->
+    <div class="col-lg-9">
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="card-body p-4 p-md-5">
+                <div
+                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 border-bottom pb-3">
+                    <div>
+                        <h3 id="working-hours-heading" class="fw-bold font-poppins text-dark m-0">Working Hours</h3>
+                        <p class="text-muted m-0 small mt-1">Configure your weekly availability boundaries for customer
+                            appointments.</p>
+                    </div>
+                </div>
+
+                <form method="post" class="needs-validation" novalidate id="workingHoursForm">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+
+                    <div class="table-responsive rounded-4 border">
+                        <table class="table table-hover align-middle m-0">
+                            <thead class="bg-light text-muted">
+                                <tr>
+                                    <th class="py-3 px-4 fw-medium border-0">Day of Week</th>
+                                    <th class="py-3 px-4 text-center fw-medium border-0">Available?</th>
+                                    <th class="py-3 px-4 fw-medium border-0">Start Time</th>
+                                    <th class="py-3 px-4 fw-medium border-0">End Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for form in formset %}
+                                <tr>
+                                    <!-- Hidden ID & Day fields mapped to the explicit label -->
+                                    <td class="py-3 px-4 text-dark" style="width: 25%;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded p-2 me-3 text-muted">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    fill="currentColor" class="bi bi-calendar-day" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M4.684 11.523v-2.3h2.261v-.61H4.684V6.801h2.464v-.61H4v5.332h.684zm3.296 0h.676V8.98c0-.554.227-1.007.953-1.007.125 0 .258.004.329.015v-.613a1.806 1.806 0 0 0-.254-.02c-.582 0-.891.32-1.012.567h-.02v-.504H7.98v4.105zm2.805-5.093c0 .238.192.425.43.425a.428.428 0 1 0 0-.855c-.238 0-.43.187-.43.43zm.094 5.093h.672V7.418h-.672v4.105z" />
+                                                    <path
+                                                        d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                                </svg>
+                                            </div>
+                                            <!-- Render day label explicitly -->
+                                            <span class="fw-bold fs-6">{{form.instance.get_day_of_week_display}}</span>
+                                            {{ form.id }}
+                                            {{ form.day_of_week }}
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <div class="form-check form-switch d-flex justify-content-center m-0">
+                                            {{ form.is_working_day }}
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        {{ form.start_time }}
+                                        <div class="invalid-feedback fw-medium start-time-feedback"></div>
+                                        {% if form.start_time.errors %}
+                                        <div class="text-danger small mt-1">{{ form.start_time.errors.0 }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        {{ form.end_time }}
+                                        <div class="invalid-feedback fw-medium end-time-feedback"></div>
+                                        {% if form.end_time.errors %}
+                                        <div class="text-danger small mt-1">{{ form.end_time.errors.0 }}</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
+                        <button type="submit"
+                            class="btn btn-primary bg-gradient rounded-pill px-5 shadow-sm fw-bold">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById('workingHoursForm');
+
+        if (form) form.addEventListener('submit', function (e) {
+            let isValid = true;
+            const rows = document.querySelectorAll('tbody tr');
+
+            // Loop through each row to validate
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const isWorking = row.querySelector('.form-check-input').checked;
+                const startTimeInput = row.querySelector('input[type="time"][name$="-start_time"]');
+                const endTimeInput = row.querySelector('input[type="time"][name$="-end_time"]');
+
+                if (!startTimeInput || !endTimeInput) continue;
+
+                // Clear previous validations
+                startTimeInput.setCustomValidity('');
+                endTimeInput.setCustomValidity('');
+
+                if (isWorking) {
+                    if (!startTimeInput.value) {
+                        startTimeInput.setCustomValidity('Required');
+                        const stFeedback = row.querySelector('.start-time-feedback');
+                        if (stFeedback) stFeedback.textContent = 'Required';
+                        isValid = false;
+                    }
+                    if (!endTimeInput.value) {
+                        endTimeInput.setCustomValidity('Required');
+                        const etFeedback = row.querySelector('.end-time-feedback');
+                        if (etFeedback) etFeedback.textContent = 'Required';
+                        isValid = false;
+                    }
+
+                    if (startTimeInput.value && endTimeInput.value && startTimeInput.value >= endTimeInput.value) {
+                        endTimeInput.setCustomValidity('End time must be after start time.');
+                        const etFeedback = row.querySelector('.end-time-feedback');
+                        if (etFeedback) etFeedback.textContent = 'End time must be after start time.';
+                        isValid = false;
+                    }
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Release the loading state created by base.html if validation fails natively
+                const submitBtn = form.querySelector('button[type="submit"]');
+                setTimeout(() => {
+                    if (submitBtn && submitBtn.hasAttribute('data-original-html')) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = submitBtn.getAttribute('data-original-html');
+                    }
+                }, 10);
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Clear validity styling on input change to allow re-validation
+        const timeInputs = document.querySelectorAll('input[type="time"]');
+        timeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                this.setCustomValidity('');
+                const row = this.closest('tr');
+                const start = row.querySelector('input[name$="-start_time"]');
+                const end = row.querySelector('input[name$="-end_time"]');
+                if(start) start.setCustomValidity('');
+                if(end) end.setCustomValidity('');
+            });
+        });
+    });
+</script>
+{% endblock %}

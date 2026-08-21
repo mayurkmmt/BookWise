@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<section class="container mt-4 mb-2" aria-labelledby="appointments-heading">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            {% include 'accounts/_sidebar.html' %}
+        </div>
+
+        <!-- Main Logistics Panel -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4 border-bottom pb-3">
+                        <h3 id="appointments-heading" class="fw-bold font-poppins text-dark m-0">My Bookings</h3>
+                        <p class="text-muted m-0 small mt-1">View and securely trace all active cancellations or upcoming reservations below.</p>
+                    </div>
+
+                    <!-- Filter Bar -->
+                    <form method="get" class="mb-4 bg-light p-3 py-4 rounded-4 border">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                                <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm rounded-pill px-3 py-2" placeholder="Provider, Service, Reference..." value="{{ request.GET.search }}">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Date</label>
+                                <input type="text" name="date_range" id="filterDateRange" class="form-control form-control-sm border-0 shadow-sm rounded-pill px-3 py-2 bg-white" placeholder="Dates..." value="{{ request.GET.date_range }}" readonly>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Status</label>
+                                <input type="hidden" name="status" id="filterStatusInput" value="{{ request.GET.status }}">
+                                <div class="dropdown w-100">
+                                    <button class="form-select form-select-sm border-0 shadow-sm rounded-pill px-3 py-2 w-100 text-start bg-white text-truncate position-relative"
+                                        type="button" id="filterStatusDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" data-bs-display="static">
+                                        <span id="filterStatusText">
+                                            {% if selected_statuses|length > 0 %}
+                                                {% if selected_statuses|length == 1 %}
+                                                    {{ selected_statuses.0|title }}
+                                                {% else %}
+                                                    {{ selected_statuses|length }} Statuses
+                                                {% endif %}
+                                            {% else %}
+                                                All Statuses
+                                            {% endif %}
+                                        </span>
+                                    </button>
+                                    <ul class="dropdown-menu shadow border-0 rounded-4 p-2 w-100 mt-1" aria-labelledby="filterStatusDropdown">
+                                        <li>
+                                            <label class="dropdown-item rounded-3 mb-2 d-flex align-items-center border-bottom pb-2">
+                                                <input class="form-check-input me-2 filter-status-select-all" type="checkbox" value=""> <strong>Select All</strong>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="dropdown-item rounded-3 mb-1 d-flex align-items-center">
+                                                <input class="form-check-input me-2 filter-status-checkbox" type="checkbox" value="pending" {% if 'pending' in selected_statuses %}checked{% endif %}> Pending
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="dropdown-item rounded-3 mb-1 d-flex align-items-center">
+                                                <input class="form-check-input me-2 filter-status-checkbox" type="checkbox" value="confirmed" {% if 'confirmed' in selected_statuses %}checked{% endif %}> Confirmed
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="dropdown-item rounded-3 mb-1 d-flex align-items-center">
+                                                <input class="form-check-input me-2 filter-status-checkbox" type="checkbox" value="cancelled" {% if 'cancelled' in selected_statuses %}checked{% endif %}> Cancelled
+                                            </label>
+                                        </li>
+                                        <!-- <li>
+                                            <label class="dropdown-item rounded-3 mb-1 d-flex align-items-center">
+                                                <input class="form-check-input me-2 filter-status-checkbox" type="checkbox" value="completed" {% if 'completed' in selected_statuses %}checked{% endif %}> Completed
+                                            </label>
+                                        </li> -->
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small fw-bold text-muted mb-1">Service</label>
+                                <input type="hidden" name="service" id="filterServiceInput" value="{{ request.GET.service }}">
+                                <div class="dropdown w-100">
+                                    <button class="form-select form-select-sm border-0 shadow-sm rounded-pill px-3 py-2 w-100 text-start bg-white text-truncate position-relative"
+                                        type="button" id="filterServiceDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" data-bs-display="static">
+                                        <span id="filterServiceText">
+                                            {% if selected_services|length > 0 %}
+                                                {% if selected_services|length == 1 %}
+                                                    {% for srv in available_services %}
+                                                        {% if srv.id|stringformat:"s" == selected_services.0 %}{{ srv.title }}{% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    {{ selected_services|length }} Services
+                                                {% endif %}
+                                            {% else %}
+                                                All Services
+                                            {% endif %}
+                                        </span>
+                                    </button>
+                                    <ul class="dropdown-menu shadow border-0 rounded-4 p-2 w-100 mt-1" aria-labelledby="filterServiceDropdown" style="max-height: 300px; overflow-y: auto;">
+                                        <li>
+                                            <label class="dropdown-item rounded-3 mb-2 d-flex align-items-center text-wrap border-bottom pb-2" style="cursor:pointer;">
+                                                <input class="form-check-input me-2 filter-service-select-all flex-shrink-0" type="checkbox" value="">
+                                                <strong>Select All</strong>
+                                            </label>
+                                        </li>
+                                        {% for srv in available_services %}
+                                        <li>
+                                            <label class="dropdown-item rounded-3 mb-1 d-flex align-items-center text-wrap" style="cursor:pointer;">
+                                                <input class="form-check-input me-2 filter-service-checkbox flex-shrink-0" type="checkbox" value="{{ srv.id }}" {% if srv.id|stringformat:"s" in selected_services %}checked{% endif %}>
+                                                <span>{{ srv.title }}</span>
+                                            </label>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-2 text-md-end text-start mt-3 mt-md-0">
+                                <button type="submit" class="btn btn-sm btn-primary rounded-pill shadow-sm px-3 py-2 fw-bold w-100">Apply</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive rounded-4 border">
+                        <table class="table table-hover align-middle m-0">
+                            <thead class="bg-light text-muted">
+                                <tr>
+                                    <th class="py-3 px-4 fw-medium border-0">Provider Info</th>
+                                    <th class="py-3 px-4 fw-medium border-0">Services & Scheduling</th>
+                                    <th class="py-3 px-4 fw-medium border-0 text-center">Status</th>
+                                    <th class="py-3 px-4 fw-medium border-0 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'customer_appointment_detail' appt.id %}" class="text-decoration-none d-block">
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-bold text-dark">{{ appt.provider.business_name }}</span>
+                                                <span class="text-muted small fw-medium">{{ appt.provider.user.email }}</span>
+                                                {% if appt.provider.user.phone_number %}
+                                                <span class="text-muted small fw-medium">{{ appt.provider.user.phone_number }}</span>
+                                                {% endif %}
+                                                {% if appt.provider.business_address %}
+                                                <span class="text-secondary small fw-medium mt-1"><i class="bi bi-geo-alt-fill"></i> {{ appt.provider.business_address }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'customer_appointment_detail' appt.id %}" class="text-decoration-none d-block">
+                                            <span class="fw-bold text-primary d-block mb-1">
+                                                {% for appt_service in appt.appointment_services.all %}
+                                                    {{ appt_service.service.title }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            <span class="text-muted small d-block fw-medium">{{ appt.date|date:"F jS" }} @ {{ appt.start_time|time:"h:iA" }}</span>
+                                            <span class="fw-bold text-success small d-block mt-1">₹{{ appt.total_price }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <!-- Status Badge -->
+                                        <span class="badge px-3 py-2 rounded-pill fw-bold border shadow-sm text-uppercase tracking-wide small text-center
+                                        {% if appt.status == 'pending' %}bg-warning bg-opacity-25 text-dark border-warning
+                                        {% elif appt.status == 'confirmed' %}bg-success bg-opacity-10 text-success border-success
+                                        {% elif appt.status == 'cancelled' %}bg-danger bg-opacity-10 text-danger border-danger
+                                        {% else %}bg-secondary bg-opacity-10 text-secondary border-secondary{% endif %}" style="display:inline-block; min-width:115px;">
+                                            {% if appt.status == 'pending' %}<i class="bi bi-clock-history me-1"></i>
+                                            {% elif appt.status == 'confirmed' %}<i class="bi bi-check-circle-fill me-1"></i>
+                                            {% elif appt.status == 'cancelled' %}<i class="bi bi-x-circle-fill me-1"></i>
+                                            {% endif %}
+                                            {{ appt.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <!-- Action Buttons -->
+                                        {% if appt.can_be_modified_by_customer %}
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{% url 'customer_reschedule_appointment' appt.id %}"
+                                                class="btn btn-sm btn-primary shadow-sm rounded-circle d-flex justify-content-center align-items-center"
+                                                style="width: 34px; height: 34px;" title="Reschedule">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-calendar2-week" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"/><path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4zM8.5 7a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm-3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm5 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/></svg>
+                                            </a>
+                                            <button type="button"
+                                                class="btn btn-sm btn-light text-danger border-danger shadow-sm rounded-circle d-flex justify-content-center align-items-center"
+                                                style="width: 34px; height: 34px;" title="Cancel"
+                                                data-bs-toggle="modal" data-bs-target="#cancelModal{{ appt.id }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>
+                                            </button>
+
+                                            <!-- Cancel Modal -->
+                                            <div class="modal fade text-start" id="cancelModal{{ appt.id }}" tabindex="-1" aria-labelledby="cancelModalLabel{{ appt.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content rounded-4 border-0 shadow">
+                                                        <div class="modal-header border-bottom-0 pb-0">
+                                                            <h5 class="modal-title fw-bold text-dark font-poppins" id="cancelModalLabel{{ appt.id }}">Cancel Booking?</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-muted">
+                                                            Are you sure you want to cancel your appointment with <strong>{{ appt.provider.business_name }}</strong>? This action will formally notify the provider and cannot be undone.
+                                                        </div>
+                                                        <div class="modal-footer border-top-0 pt-0">
+                                                            <button type="button" class="btn btn-light rounded-pill fw-bold px-4" data-bs-dismiss="modal">Keep Booking</button>
+                                                            <form method="POST" action="{% url 'customer_cancel_appointment' appt.id %}" class="m-0">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-danger rounded-pill fw-bold px-4 shadow-sm">Yes, Cancel</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="text-end">
+                                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-dash-circle me-1"></i> No Actions</span>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                                            fill="currentColor" class="bi bi-calendar-x opacity-25 mb-3"
+                                            viewBox="0 0 16 16">
+                                            <path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708z" />
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                        </svg>
+                                        <h4 class="font-poppins fw-bold text-dark mt-2 mb-3">No bookings tracked yet.</h4>
+                                        <p class="text-muted mb-4">Discover our top tier providers and easily secure your first session today!</p>
+                                        <a href="{% url 'home' %}" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm fw-bold">Explore Providers</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.previous_page_number }}{{ filter_query_string }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&laquo;</span>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active" aria-current="page">
+                                    <span class="page-link shadow-sm border-0 rounded-pill mx-1 bg-primary border-primary">{{ num }}</span>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ num }}{{ filter_query_string }}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.next_page_number }}{{ filter_query_string }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&raquo;</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#filterDateRange", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            disableMobile: true,
+            static: true
+        });
+
+        // Status Select All logic
+        const statusSelectAllBtn = document.querySelector('.filter-status-select-all');
+        const statusCheckboxes = document.querySelectorAll('.filter-status-checkbox');
+
+        if (statusSelectAllBtn) {
+            statusSelectAllBtn.addEventListener('change', function() {
+                statusCheckboxes.forEach(cb => cb.checked = this.checked);
+                updateStatusFilter();
+            });
+
+            statusCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const allChecked = Array.from(statusCheckboxes).every(c => c.checked);
+                    statusSelectAllBtn.checked = allChecked;
+                    updateStatusFilter();
+                });
+            });
+
+            // Initial check
+            statusSelectAllBtn.checked = Array.from(statusCheckboxes).length > 0 && Array.from(statusCheckboxes).every(c => c.checked);
+        }
+
+        function updateStatusFilter() {
+            const selected = Array.from(document.querySelectorAll('.filter-status-checkbox:checked')).map(c => c.value);
+            document.getElementById('filterStatusInput').value = selected.join(',');
+
+            let text = selected.length > 0 ? selected.length + " Statuses" : "All Statuses";
+            if(selected.length === 1) {
+                text = selected[0].charAt(0).toUpperCase() + selected[0].slice(1);
+            } else if (selected.length === statusCheckboxes.length && selected.length > 0) {
+                text = "All Statuses";
+            }
+            document.getElementById('filterStatusText').innerText = text;
+        }
+
+        // Service Select All logic
+        const serviceSelectAllBtn = document.querySelector('.filter-service-select-all');
+        const serviceCheckboxes = document.querySelectorAll('.filter-service-checkbox');
+
+        if (serviceSelectAllBtn) {
+            serviceSelectAllBtn.addEventListener('change', function() {
+                serviceCheckboxes.forEach(cb => cb.checked = this.checked);
+                updateServiceFilter();
+            });
+
+            serviceCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const allChecked = Array.from(serviceCheckboxes).every(c => c.checked);
+                    serviceSelectAllBtn.checked = allChecked;
+                    updateServiceFilter();
+                });
+            });
+
+            // Initial check
+            serviceSelectAllBtn.checked = Array.from(serviceCheckboxes).length > 0 && Array.from(serviceCheckboxes).every(c => c.checked);
+        }
+
+        function updateServiceFilter() {
+            const selectedCheckboxes = Array.from(document.querySelectorAll('.filter-service-checkbox:checked'));
+            const selectedValues = selectedCheckboxes.map(c => c.value);
+            document.getElementById('filterServiceInput').value = selectedValues.join(',');
+
+            let text = selectedValues.length > 0 ? selectedValues.length + " Services" : "All Services";
+            if(selectedCheckboxes.length === 1) {
+                text = selectedCheckboxes[0].nextElementSibling.innerText.trim();
+            } else if (selectedValues.length === serviceCheckboxes.length && selectedValues.length > 0) {
+                text = "All Services";
+            }
+            document.getElementById('filterServiceText').innerText = text;
+        }
+    });
+</script>
+{% endblock %}

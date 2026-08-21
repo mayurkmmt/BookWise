@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="dashboard-heading">
+    <div class="row">
+        <!-- Customer Sidebar -->
+        <div class="col-lg-3 mb-4">
+            {% include "accounts/_sidebar.html" %}
+        </div>
+
+        <!-- Main Logistics Panel -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                        <h3 id="dashboard-heading" class="fw-bold font-poppins text-dark m-0">My Dashboard</h3>
+                        <a class="btn btn-outline-primary rounded-pill px-4 fw-medium" href="{% url 'profile_edit' %}">Account Settings</a>
+                    </div>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-4">
+                            <a href="{% url 'customer_appointments' %}" class="text-decoration-none d-block h-100">
+                                <div class="p-4 bg-light rounded-4 border hover-lift h-100 border-start border-primary border-4">
+                                    <h6 class="text-muted fw-bold mb-2">Total Appointments</h6>
+                                    <h2 class="font-poppins fw-bolder text-dark m-0">{{ total_appointments_count|default:"0" }}</h2>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'customer_appointments' %}" class="text-decoration-none d-block h-100">
+                                <div class="p-4 bg-light rounded-4 border hover-lift h-100 border-start border-info border-4">
+                                    <h6 class="text-muted fw-bold mb-2">Upcoming Appointments</h6>
+                                    <h2 class="font-poppins fw-bolder text-dark m-0">{{ upcoming_appointments_count|default:"0" }}</h2>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-4 bg-light rounded-4 border hover-lift h-100 border-start border-secondary border-4">
+                                <h6 class="text-muted fw-bold mb-2">Past Appointments</h6>
+                                <h2 class="font-poppins fw-bolder text-dark m-0">{{ past_appointments_count|default:"0" }}</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold font-poppins border-bottom pb-3 mb-4">Today's Appointments <span class="badge bg-primary text-white rounded-pill ms-2 fs-6">{{ today_appointments|length }}</span></h5>
+                    <div class="table-responsive rounded-4 border">
+                        <table class="table table-hover table-borderless align-middle m-0">
+                            <thead class="bg-light text-muted">
+                                <tr>
+                                    <th class="py-3 px-4">Time</th>
+                                    <th class="py-3 px-4">Provider</th>
+                                    <th class="py-3 px-4">Service</th>
+                                    <th class="py-3 px-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in today_appointments %}
+                                <tr>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'customer_appointment_detail' appt.id %}" class="text-decoration-none fw-medium text-dark d-block">{{ appt.start_time|time:"h:iA" }}</a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'customer_appointment_detail' appt.id %}" class="text-decoration-none d-block">
+                                            <span class="fw-bold d-block text-dark">{{ appt.provider.business_name }}</span>
+                                            <span class="text-muted small fw-medium d-block">{{ appt.provider.user.email }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'customer_appointment_detail' appt.id %}" class="text-decoration-none text-secondary d-block">
+                                            {% for appt_service in appt.appointment_services.all %}
+                                                {{ appt_service.service.title }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <!-- Customer Status Badge mimicking dashboard design -->
+                                        <span class="badge px-3 py-2 rounded-pill fw-bold border shadow-sm text-center
+                                            {% if appt.status == 'pending' %}bg-warning bg-opacity-25 text-dark border-warning
+                                            {% elif appt.status == 'confirmed' %}bg-success bg-opacity-10 text-success border-success
+                                            {% elif appt.status == 'cancelled' %}bg-danger bg-opacity-10 text-danger border-danger
+                                            {% else %}bg-secondary bg-opacity-10 text-secondary border-secondary{% endif %}" style="display:inline-block;">
+                                            {{ appt.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                                            class="bi bi-calendar2-x opacity-25 mb-3" viewBox="0 0 16 16">
+                                            <path
+                                                d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708z" />
+                                            <path
+                                                d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z" />
+                                            <path
+                                                d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z" />
+                                        </svg>
+                                        <br>You have no appointments scheduled for today.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

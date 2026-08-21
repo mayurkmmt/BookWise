@@ -1,0 +1,112 @@
+<aside class="card border-0 shadow-sm rounded-4 position-sticky d-none d-lg-block" style="top: 95px;">
+    <div class="bg-brand-gradient text-white p-4 text-center position-relative rounded-top-4">
+        {% if request.user.role == 'provider' and request.user.service_provider.business_logo %}
+            <img src="{{ request.user.service_provider.business_logo.url }}" class="rounded-circle shadow mb-3"
+                style="width: 80px; height: 80px; object-fit: cover;">
+        {% else %}
+            <div class="bg-white text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow"
+                style="width: 80px; height: 80px;">
+                <span class="fs-1 fw-bold font-poppins">
+                    {% if request.user.role == 'provider' and request.user.service_provider.business_name %}
+                        {{ request.user.service_provider.business_name|slice:":1"|upper }}
+                    {% else %}
+                        {{ request.user.email|slice:":1"|upper }}
+                    {% endif %}
+                </span>
+            </div>
+        {% endif %}
+
+        <h4 class="fw-bold font-poppins mb-1 text-truncate">
+            {% if request.user.role == 'provider' and request.user.service_provider.business_name %}
+                {{ request.user.service_provider.business_name }}
+            {% else %}
+                {{ request.user.email }}
+            {% endif %}
+        </h4>
+        {% if request.user.role == 'provider' and request.user.service_provider.business_address %}
+        <p class="small text-white-50 mb-0 mt-1 d-flex justify-content-center align-items-center opacity-75">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-geo-alt-fill me-1" viewBox="0 0 16 16">
+              <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+            </svg>
+            {{ request.user.service_provider.business_address|truncatechars:35 }}
+        </p>
+        {% endif %}
+        <span class="badge bg-light text-primary rounded-pill px-3 mt-2">{{ request.user.get_role_display|title }}</span>
+    </div>
+
+    <!-- Navigation links for account sidebar -->
+    <nav class="nav flex-column nav-pills px-3 py-4 gap-1 bg-white h-100 rounded-bottom-4">
+        {% if request.user.role == 'provider' %}
+        <a class="nav-link text-decoration-none text-dark {% if request.resolver_match.url_name == 'provider_dashboard' %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'provider_dashboard' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-grid-1x2-fill me-3" viewBox="0 0 16 16">
+                <path d="M0 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm9 0a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V1zm0 9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5z" />
+            </svg>
+            Overview
+        </a>
+        <a class="nav-link text-decoration-none text-dark {% if 'provider/appointments' in request.path and request.GET.source != 'customer' %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'provider_appointments' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check me-3" viewBox="0 0 16 16">
+                <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z" />
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+            </svg>
+            Appointments
+        </a>
+        <a class="nav-link text-decoration-none text-dark {% if 'provider/customers' in request.path or request.GET.source == 'customer' %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'provider_customers' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill me-3" viewBox="0 0 16 16">
+                <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+            </svg>
+            Customers
+        </a>
+        <a class="nav-link text-decoration-none text-dark {% if 'provider/services' in request.path %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'service_list' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tags me-3" viewBox="0 0 16 16">
+                <path d="M3 2v4.586l7 7L14.586 9l-7-7H3zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586V2z" />
+                <path d="M5.5 5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z" />
+            </svg>
+            Services
+        </a>
+        <a class="nav-link text-decoration-none text-dark {% if request.resolver_match.url_name == 'manage_working_hours' %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'manage_working_hours' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock me-3" viewBox="0 0 16 16">
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+            </svg>
+            Working Hours
+        </a>
+        {% elif request.user.role == 'customer' %}
+        <a class="nav-link text-decoration-none text-dark {% if 'profile' in request.path and not 'edit' in request.path %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'profile' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person me-3" viewBox="0 0 16 16">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+            </svg>
+            Overview
+        </a>
+        <a class="nav-link text-decoration-none text-dark {% if 'my-appointments' in request.path %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'customer_appointments' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-event me-3" viewBox="0 0 16 16">
+                <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+            </svg>
+            Bookings
+        </a>
+        {% endif %}
+
+        <a class="nav-link text-decoration-none text-dark {% if 'profile/edit' in request.path %}fw-bold bg-light rounded-pill text-primary{% else %}opacity-75{% endif %} px-3 py-2 d-flex align-items-center"
+            href="{% url 'profile_edit' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-gear me-3" viewBox="0 0 16 16">
+                <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm.256 7a4.474 4.474 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256Zm3.63-4.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136-.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0 .382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382l.045-.148ZM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z" />
+            </svg>
+            Settings
+        </a>
+
+        <hr class="mt-4 mb-3 border-light">
+
+        <form action="{% url 'logout' %}" method="post" class="px-2">
+            {% csrf_token %}
+            <button type="submit"
+                class="btn btn-danger bg-gradient rounded-pill w-100 shadow-sm fw-bold border-0 hover-lift">Logout</button>
+        </form>
+    </nav>
+</aside>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container my-5" aria-labelledby="success-heading">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5 text-center">
+            <!-- Success Animation Ping -->
+            <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-success bg-opacity-10 mb-4 position-relative"
+                style="width: 100px; height: 100px;">
+                <div class="position-absolute w-100 h-100 rounded-circle bg-success shadow-sm"
+                    style="opacity: 0.2; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+                <style>
+                    @keyframes ping {
+
+                        75%,
+                        100% {
+                            transform: scale(1.5);
+                            opacity: 0;
+                        }
+                    }
+                </style>
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor"
+                    class="bi bi-check-lg text-success position-relative z-1" viewBox="0 0 16 16">
+                    <path
+                        d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z" />
+                </svg>
+            </div>
+
+            <h1 id="success-heading" class="display-6 fw-bold font-poppins text-dark mb-3">Booking Request Sent!</h1>
+            <p class="lead text-muted mb-5">Your appointment has been successfully forwarded to the provider for
+                confirmation.</p>
+
+            <div class="card border-0 shadow-lg rounded-4 text-start overflow-hidden mb-5">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-4 mb-4">
+                        <span class="text-muted fw-bold small text-uppercase tracking-wide">Request Status</span>
+                        <span
+                            class="badge bg-warning bg-opacity-10 text-dark px-3 py-2 rounded-pill fw-bold border border-warning shadow-sm">Pending
+                            Review</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="fw-bold font-poppins text-dark mb-1 fs-5">
+                            {% for pt in appointment.appointment_services.all %}
+                            {{ pt.service.title }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </h5>
+                        <p class="text-muted m-0 fw-medium">with {{ appointment.provider.business_name }}</p>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded text-primary shadow-sm border border-light d-flex justify-content-center align-items-center" style="width: 42px; height: 42px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                class="bi bi-calendar-event" viewBox="0 0 16 16">
+                                <path
+                                    d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
+                                <path
+                                    d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="m-0 fw-bold text-dark fs-6">{{ appointment.date|date:"l, F jS Y" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 rounded text-primary shadow-sm border border-light d-flex justify-content-center align-items-center" style="width: 42px; height: 42px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                class="bi bi-clock" viewBox="0 0 16 16">
+                                <path
+                                    d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="m-0 fw-bold text-dark fs-6">{{ appointment.start_time|time:"h:i A" }} – {{ appointment.end_time|time:"h:i A" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Truncate filter missing natively in Django so using slice instead -->
+                <div class="bg-light px-4 py-4 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-medium small">Ref: {{ appointment.booking_reference|stringformat:"s"|slice:":8" }}</span>
+                    <span class="fw-bold fs-4 text-success">₹{{ appointment.total_price }}</span>
+                </div>
+            </div>
+
+            <a href="{% url 'home' %}"
+                class="btn btn-outline-primary bg-white rounded-pill px-5 fw-bold shadow-sm p-3 border-2 border-primary">Return
+                Home</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

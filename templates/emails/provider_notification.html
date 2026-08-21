@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body { font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e9ecef; }
+        .header { background-color: #0f2027; color: white; padding: 25px; text-align: center; border-bottom: 4px solid #203a43; }
+        .header h2 { margin: 0; font-weight: 600; font-size: 24px; letter-spacing: 0.5px; }
+        .content { padding: 30px; line-height: 1.6; }
+        .footer { background-color: #f1f3f5; color: #6c757d; padding: 15px; text-align: center; font-size: 13px; border-top: 1px solid #e9ecef;}
+        .details-box { background-color: #f8f9fa; border-left: 4px solid #0f2027; border-radius: 0 5px 5px 0; padding: 20px; margin: 20px 0; }
+        .details-box p { margin: 5px 0; }
+        .highlight { color: #0f2027; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Provider Alert</h2>
+        </div>
+        <div class="content">
+            <p style="font-size: 16px;">Hello <span class="highlight">{{ provider_name }}</span>,</p>
+            <p style="font-size: 16px;">{{ body_status }}</p>
+
+            <div class="details-box">
+                <h4 style="margin-top: 0; color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 8px;">Action Summary</h4>
+                <p><strong>Client:</strong> {{ client_name }} ({{ client_email }})</p>
+                <p><strong>Date:</strong> {{ date }}</p>
+                <p><strong>Time:</strong> {{ time }}</p>
+                <p><strong>Expected Revenue:</strong> ₹{{ total_price }}</p>
+                <p><strong>Ref Code:</strong> <span style="font-family: monospace; color: #666;">#{{ ref }}</span></p>
+            </div>
+
+            <p>Please log in to your BookWise Dashboard immediately to track & manage this update.</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 BookWise Solutions. Automated System Message.
+        </div>
+    </div>
+</body>
+</html>

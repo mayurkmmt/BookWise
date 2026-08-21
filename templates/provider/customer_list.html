@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="customers-heading">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            {% include "accounts/_sidebar.html" %}
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4 border-bottom pb-3">
+                        <h3 id="customers-heading" class="fw-bold font-poppins text-dark m-0">Customers
+                        </h3>
+                        <p class="text-muted m-0 small mt-1">Review the lifetime value and history of your active clients.</p>
+                    </div>
+
+                    <form method="get" class="mb-4 bg-light p-3 py-4 rounded-4 border">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-9">
+                                <label class="form-label small fw-bold text-muted mb-1">Search Database</label>
+                                <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm rounded-pill px-3 py-2" placeholder="Search by name, email, or phone..." value="{{ request.GET.search }}">
+                            </div>
+                            <div class="col-12 col-md-3 text-md-end text-start mt-3 mt-md-0">
+                                <button type="submit" class="btn btn-sm btn-primary rounded-pill shadow-sm px-3 py-2 fw-bold w-100">Find Customers</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive rounded-4 border">
+                        <table class="table table-hover align-middle m-0">
+                            <thead class="bg-light text-muted">
+                                <tr>
+                                    <th class="py-3 px-4 fw-medium border-0">Client Match</th>
+                                    <th class="py-3 px-4 fw-medium border-0">Statistics</th>
+                                    <th class="py-3 px-4 fw-medium border-0 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cust in customers %}
+                                <tr>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'provider_customer_detail' cust.email %}" class="text-decoration-none d-block">
+                                            <span class="fw-bold d-block text-dark">{{ cust.name|default:"Unknown Client" }} {% if cust.type == 'Guest' %}<span class="badge bg-secondary ms-1" style="font-size:0.6rem;">Guest</span>{% endif %}</span>
+                                            <span class="text-muted small fw-medium d-block">{{ cust.email }}</span>
+                                            <span class="text-secondary small fw-medium mt-1 d-block"><i class="bi bi-telephone text-muted"></i> {{ cust.phone|default:"N/A" }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="d-block">
+                                            <span class="fw-bold text-primary d-block">{{ cust.total_appointments }} Booking{% if cust.total_appointments > 1 %}s{% endif %}</span>
+                                            <!-- <span class="text-success fw-bold small d-block">₹{{ cust.total_spent }} LTV</span> -->
+                                            <span class="text-muted small d-block mt-1">Last: {{ cust.last_appointment|date:"F jS, Y" }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <a href="{% url 'provider_customer_detail' cust.email %}" class="btn btn-sm btn-light border shadow-sm rounded-pill px-3 py-1 fw-bold text-primary text-decoration-none" style="white-space:nowrap;">View History</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                                            fill="currentColor" class="bi bi-person-slash opacity-25 mb-3"
+                                            viewBox="0 0 16 16">
+                                            <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465l3.465-3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465zm-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95zM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm.256 7a4.474 4.474 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256z"/>
+                                        </svg>
+                                        <br>No customers found matching your criteria.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if page_obj %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.previous_page_number }}{{ filter_query_string }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&laquo;</span>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active" aria-current="page">
+                                    <span class="page-link shadow-sm border-0 rounded-pill mx-1 bg-primary border-primary">{{ num }}</span>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ num }}{{ filter_query_string }}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.next_page_number }}{{ filter_query_string }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&raquo;</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

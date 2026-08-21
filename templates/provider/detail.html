@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Top Header / Banner -->
+<header class="bg-brand-gradient py-5 position-relative overflow-hidden mb-5 mt-n4">
+    <div class="container position-relative z-1 my-md-4">
+        <div class="row align-items-center">
+            <div class="col-md-8 text-white">
+                <div class="d-flex flex-column flex-md-row align-items-center gap-4 mb-3 text-center text-md-start">
+                    {% if provider.business_logo %}
+                    <img src="{{ provider.business_logo.url }}"
+                        class="rounded-circle shadow-lg border border-3 border-white object-fit-cover flex-shrink-0"
+                        style="width: 120px; height: 120px;" alt="{{ provider.business_name }}">
+                    {% else %}
+                    <div class="bg-white text-primary rounded-circle shadow-lg d-flex justify-content-center align-items-center flex-shrink-0 border border-3 border-white"
+                        style="width: 120px; height: 120px;">
+                        <span class="display-3 fw-bold font-poppins">{{ provider.business_name|slice:":1" }}</span>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="display-5 fw-bold font-poppins m-0">{{ provider.business_name }}</h1>
+                        <p class="lead opacity-75 m-0 mt-1" style="display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+                            {{ provider.description|default:"No description provided yet by this provider. They operate a highly rated service suite locally." }}
+                        </p>
+
+                        <!-- Contact & Trust Badges Row -->
+                        <div class="d-flex flex-wrap gap-2 mt-4 justify-content-center justify-content-md-start">
+                            {% if provider.business_address %}
+                            <span class="badge rounded-pill bg-white bg-opacity-10 text-white border border-white border-opacity-25 px-3 py-2 d-flex align-items-center fw-medium shadow-sm hover-lift" title="Location">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt me-2" viewBox="0 0 16 16"><path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/><path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+                                {{ provider.business_address }}
+                            </span>
+                            {% endif %}
+
+                            <a href="mailto:{{ provider.user.email }}" class="badge rounded-pill bg-white bg-opacity-10 text-white text-decoration-none border border-white border-opacity-25 px-3 py-2 d-flex align-items-center fw-medium shadow-sm hover-lift" title="Email Provider">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope me-2" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/></svg>
+                                {{ provider.user.email }}
+                            </a>
+
+                            {% if provider.user.phone_number %}
+                            <a href="tel:{{ provider.user.phone_number }}" class="badge rounded-pill bg-white bg-opacity-10 text-white text-decoration-none border border-white border-opacity-25 px-3 py-2 d-flex align-items-center fw-medium shadow-sm hover-lift" title="Call Provider">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-telephone me-2" viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/></svg>
+                                {{ provider.user.phone_number }}
+                            </a>
+                            {% endif %}
+
+                            <span class="badge rounded-pill bg-white bg-opacity-25 text-white border border-white border-opacity-50 px-3 py-2 d-flex align-items-center fw-medium shadow-sm" title="Registered BookWise Partner">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-check me-2" viewBox="0 0 16 16"><path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/><path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/></svg>
+                                Verified Provider
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right-side Weekly Schedule Row -->
+            <div class="col-lg-4 mt-5 mt-lg-0 ms-auto">
+                {% if working_hours %}
+                <div class="bg-white bg-opacity-10 rounded-4 p-4 border border-white border-opacity-25 shadow-sm text-white h-100 d-flex flex-column justify-content-center">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold font-poppins m-0 text-white"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-range me-2" viewBox="0 0 16 16"><path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1zM1 9h4a1 1 0 0 1 0 2H1V9z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>Operating Hours</h6>
+                    </div>
+                    <ul class="list-unstyled m-0">
+                        {% for hours in working_hours %}
+                        <li class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom border-white border-opacity-10{% endif %}">
+                            <span class="fs-6 fw-medium">{{ hours.get_day_of_week_display|slice:":3" }}</span>
+                            {% if hours.is_working_day %}
+                                <span class="small opacity-75 fw-medium">{{ hours.start_time|time:"g:i A" }} – {{ hours.end_time|time:"g:i A" }}</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-25 text-white border border-danger border-opacity-50">Closed</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<section class="container mb-5">
+    <div class="row g-5">
+        <!-- Services Grid -->
+        <div class="col-12" id="services">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom pb-3 gap-3">
+                <div>
+                    <h3 class="fw-bold font-poppins m-0">Select Services to Book</h3>
+                    <span class="text-muted">{% if request.GET.q %}Search results for "{{ request.GET.q }}"{% else %}Explore available services{% endif %}</span>
+                </div>
+                <form method="GET" action="{% url 'provider_detail' provider.pk %}#services" class="d-flex" style="max-width: 400px; width: 100%;" onsubmit="const newQ = this.q.value.trim(); const currentQ = (new URLSearchParams(window.location.search).get('q') || '').trim(); if(newQ === currentQ) { event.preventDefault(); return false; }">
+                    <div class="input-group shadow-sm" style="border-radius: 50rem;">
+                        <input type="text" name="q" class="form-control border-0 bg-light px-4 py-2" placeholder="Search services..." value="{{ request.GET.q|default:'' }}" style="border-top-left-radius: 50rem; border-bottom-left-radius: 50rem; box-shadow: none;">
+                        <button class="btn btn-primary bg-gradient px-4 border-0" type="submit" aria-label="Search" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <form method="GET" action="{% url 'book_services' provider.id %}" id="servicesSelectionForm">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5 pb-5">
+                    {% for service in services %}
+                    <div class="col">
+                        <label class="card shadow-sm border border-2 border-transparent rounded-4 hover-lift h-100 overflow-hidden position-relative" style="cursor: pointer; transition: all 0.2s ease;">
+                            <input class="form-check-input service-selector position-absolute top-0 end-0 m-3 shadow-sm border-secondary" type="checkbox" name="service" value="{{ service.id }}" style="transform: scale(1.4); z-index: 2;">
+
+                            <!-- Image Top -->
+                            <div class="position-relative bg-light" style="height: 200px;">
+                                {% if service.image %}
+                                <img src="{{ service.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ service.title }}">
+                                {% else %}
+                                <div class="w-100 h-100 d-flex justify-content-center align-items-center text-secondary opacity-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-tag" viewBox="0 0 16 16">
+                                        <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0z" />
+                                        <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586V2zm0 5.586l7 7L13.586 9l-7-7H2v4.586z" />
+                                    </svg>
+                                </div>
+                                {% endif %}
+                                <div class="position-absolute bottom-0 start-0 m-3">
+                                    <span class="badge bg-white text-dark shadow px-3 py-2 fs-6 fw-bold">₹{{ service.price }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Service Body -->
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h4 class="card-title fw-bold font-poppins text-dark mb-2 pe-4">{{ service.title }}</h4>
+                                <p class="card-text text-muted small mb-4 flex-grow-1">{{ service.description|truncatewords:20|default:"Premium service offering. Tap to select and seamlessly schedule your appointment." }}</p>
+
+                                <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-auto">
+                                    <span class="text-secondary fw-medium small d-flex align-items-center"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                            fill="currentColor" class="bi bi-clock me-1"
+                                            viewBox="0 0 16 16">
+                                            <path
+                                                d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                            <path
+                                                d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                                        </svg>{{ service.duration }} min</span>
+                                    <span class="fw-bold text-primary small">Tap to Select</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 py-4">
+                        <div class="p-5 text-center bg-white rounded-5 shadow-sm border border-light">
+                            <div class="mb-3 text-muted">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor"
+                                    class="bi bi-calendar-x opacity-25" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708z" />
+                                    <path
+                                        d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                </svg>
+                            </div>
+                            <h4 class="font-poppins fw-bold text-dark">No Active Services</h4>
+                            <p class="text-muted">This provider hasn't launched any public offerings yet. Please check
+                                back soon.</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Page navigation" class="mt-4 mb-5 pb-5">
+                    <ul class="pagination justify-content-center m-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.previous_page_number }}{{ filter_query_string }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&laquo;</span>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 bg-primary border-primary">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ num }}{{ filter_query_string }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.next_page_number }}{{ filter_query_string }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&raquo;</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                <!-- Sticky Booking Bar -->
+                <div id="bookingBar" class="fixed-bottom bg-white border-top shadow-lg p-3 d-none"
+                    style="z-index: 1050;">
+                    <div class="container d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="m-0 fw-bold font-poppins text-dark"><span id="selectedCount"
+                                    class="text-primary">0</span> Services Selected</h5>
+                        </div>
+                        <button type="submit"
+                            class="btn btn-primary bg-gradient rounded-pill px-4 px-md-5 shadow-sm fw-bold">Proceed to
+                            Scheduling <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                fill="currentColor" class="bi bi-arrow-right ms-2 mb-1" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd"
+                                    d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z" />
+                            </svg></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkboxes = document.querySelectorAll('.service-selector');
+        const bookingBar = document.getElementById('bookingBar');
+        const countDisplay = document.getElementById('selectedCount');
+        const form = document.getElementById('servicesSelectionForm');
+
+        // 1. Get initial services from URL
+        const params = new URLSearchParams(window.location.search);
+        let selectedServices = new Set(params.getAll('service'));
+
+        // 2. Initialize current page checkboxes
+        checkboxes.forEach(box => {
+            if (selectedServices.has(box.value)) {
+                box.checked = true;
+                const card = box.closest('.card');
+                card.classList.remove('border-transparent', 'shadow-sm');
+                card.classList.add('border-primary', 'shadow');
+            }
+        });
+
+        // 3. Add hidden inputs for services selected on OTHER pages
+        let hiddenInputsContainer = document.getElementById('hidden-services-container');
+        if (!hiddenInputsContainer) {
+            hiddenInputsContainer = document.createElement('div');
+            hiddenInputsContainer.id = 'hidden-services-container';
+            form.appendChild(hiddenInputsContainer);
+        }
+
+        // Populate hidden inputs
+        Array.from(selectedServices).forEach(serviceId => {
+            // Only add hidden input if it's not present on this page
+            if (!document.querySelector(`input.service-selector[value="${serviceId}"]`)) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'service';
+                hiddenInput.value = serviceId;
+                hiddenInputsContainer.appendChild(hiddenInput);
+            }
+        });
+
+        // 4. Update UI count
+        function updateCountAndBar() {
+            const pageChecked = document.querySelectorAll('.service-selector:checked').length;
+            const otherChecked = hiddenInputsContainer.querySelectorAll('input').length;
+            const count = pageChecked + otherChecked;
+
+            countDisplay.innerText = count;
+            if (count > 0) {
+                bookingBar.classList.remove('d-none');
+            } else {
+                bookingBar.classList.add('d-none');
+            }
+        }
+        updateCountAndBar();
+
+        // 5. Listen to checkbox changes
+        checkboxes.forEach(box => {
+            box.addEventListener('change', function () {
+                if (this.checked) {
+                    selectedServices.add(this.value);
+                } else {
+                    selectedServices.delete(this.value);
+                }
+
+                // Toggle card highlight
+                const card = this.closest('.card');
+                if(this.checked) {
+                    card.classList.remove('border-transparent', 'shadow-sm');
+                    card.classList.add('border-primary', 'shadow');
+                } else {
+                    card.classList.remove('border-primary', 'shadow');
+                    card.classList.add('border-transparent', 'shadow-sm');
+                }
+
+                updateCountAndBar();
+            });
+        });
+
+        // 6. Intercept pagination links to include exactly what's in selectedServices
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') && this.getAttribute('href') !== '#') {
+                    e.preventDefault();
+                    const url = new URL(this.href, window.location.origin);
+
+                    // Clear existing service params from the link to rebuild freshly
+                    url.searchParams.delete('service');
+
+                    // Add all currently active services
+                    Array.from(selectedServices).forEach(serviceId => {
+                        url.searchParams.append('service', serviceId);
+                    });
+
+                    window.location.href = url.toString();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

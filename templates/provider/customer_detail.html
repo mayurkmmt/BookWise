@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="appointments-heading">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            {% include "accounts/_sidebar.html" %}
+        </div>
+
+        <!-- Main Logistics Panel -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <a href="{% url 'provider_customers' %}" class="btn btn-light rounded-circle shadow-sm p-0 flex-shrink-0" style="width: 40px; height: 40px; display: inline-flex; justify-content: center; align-items: center;" title="Back to Customers">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                </svg>
+                            </a>
+                            <div>
+                                <h3 id="appointments-heading" class="fw-bold font-poppins text-dark m-0">Client Profile</h3>
+                                <p class="text-muted m-0 small mt-1">Client: <span class="fw-bold text-dark">{{ customer_name|default:"Unknown Client" }}</span> &bull; Review scheduling history and metrics.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 h-100">
+                                <h5 class="fw-bold font-poppins text-dark mb-3">Client Details</h5>
+                                <div class="mb-2">
+                                    <span class="text-muted small fw-bold">Name</span>
+                                    <p class="mb-0 fw-medium">
+                                        {{ customer_name|default:"Unknown Client" }}
+                                        {% if customer_type == 'Guest' %}<span class="badge bg-secondary ms-1">Guest</span>{% endif %}
+                                    </p>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small fw-bold">Phone</span>
+                                    <p class="mb-0 fw-medium">{{ customer_phone|default:"N/A" }}</p>
+                                </div>
+                                <div>
+                                    <span class="text-muted small fw-bold">Email</span>
+                                    <p class="mb-0 fw-medium">{{ customer_email }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 h-100">
+                                <h5 class="fw-bold font-poppins text-dark mb-3">Lifetime Metrics</h5>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6 mb-2">
+                                        <span class="text-muted small fw-bold">Total</span>
+                                        <p class="mb-0 fw-bold text-primary fs-5">{{ total_appointments }}</p>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span class="text-muted small fw-bold">Pending</span>
+                                        <p class="mb-0 fw-bold text-warning fs-5">{{ pending_appointments }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="text-muted small fw-bold">Confirmed</span>
+                                        <p class="mb-0 fw-bold text-success fs-5">{{ confirmed_appointments }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="text-muted small fw-bold">Cancelled</span>
+                                        <p class="mb-0 fw-bold text-danger fs-5">{{ cancelled_appointments }}</p>
+                                    </div>
+                                </div>
+                                <!-- <div class="pt-2 border-top">
+                                    <span class="text-muted small fw-bold">Total Spent</span>
+                                    <p class="mb-0 fw-bold text-dark fs-5">₹{{ total_spent }}</p>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5 class="fw-bold font-poppins text-dark mb-4">Appointments</h5>
+                    <div class="table-responsive rounded-4 border">
+                        <table class="table table-hover align-middle m-0">
+                            <thead class="bg-light text-muted">
+                                <tr>
+                                    <th class="py-3 px-4 fw-medium border-0">Client Match</th>
+                                    <th class="py-3 px-4 fw-medium border-0">Service & Scheduling</th>
+                                    <th class="py-3 px-4 fw-medium border-0 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'provider_appointment_detail' appt.id %}?source=customer" class="text-decoration-none d-block">
+                                            <span class="fw-bold d-block text-dark">{{ appt.customer_user.phone_number|default:appt.guest_phone_number }}</span>
+                                            <span class="text-muted small fw-medium d-block">{{ appt.customer_user.email|default:appt.guest_email }}</span>
+                                            <span class="text-secondary small fw-medium mt-1 d-block"><i class="bi bi-hash"></i> {{ appt.booking_reference }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <a href="{% url 'provider_appointment_detail' appt.id %}?source=customer" class="text-decoration-none d-block">
+                                            <span class="fw-bold text-primary d-block">
+                                                {% for appt_service in appt.appointment_services.all %}
+                                                    {{ appt_service.service.title }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            <span class="text-muted small d-block fw-medium">{{ appt.date|date:"F jS" }} @ {{ appt.start_time|time:"h:iA" }}</span>
+                                            <span class="fw-bold text-success small d-block mt-1">₹{{ appt.total_price }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm dropdown-toggle fw-bold shadow-sm rounded-pill px-3 py-1 text-center w-100 status-toggle
+                                                {% if appt.status == 'pending' %}bg-warning bg-opacity-25 text-dark border-warning
+                                                {% elif appt.status == 'confirmed' %}bg-success bg-opacity-10 text-success border-success
+                                                {% elif appt.status == 'cancelled' %}bg-danger bg-opacity-10 text-danger border-danger
+                                                {% else %}bg-light text-muted border-secondary{% endif %}"
+                                                type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" style="max-width: 140px;">
+                                                {{ appt.get_status_display }}
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2 mt-1">
+                                                <li><a class="dropdown-item rounded-3 mb-1 status-action {% if appt.status == 'confirmed' %}bg-success bg-opacity-25 text-success fw-bold{% else %}text-success{% endif %}" href="#" data-appt-id="{{ appt.id }}" data-value="confirmed">Confirmed</a></li>
+                                                <li><a class="dropdown-item rounded-3 status-action {% if appt.status == 'cancelled' %}bg-danger bg-opacity-25 text-danger fw-bold{% else %}text-danger{% endif %}" href="#" data-appt-id="{{ appt.id }}" data-value="cancelled">Cancelled</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-calendar-x opacity-25 mb-3" viewBox="0 0 16 16">
+                                            <path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708z" />
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                        </svg><br>
+                                        No historical or upcoming appointment requests exist for this client.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if page_obj %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&laquo;</span>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active" aria-current="page">
+                                    <span class="page-link shadow-sm border-0 rounded-pill mx-1 bg-primary border-primary">{{ num }}</span>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-pill mx-1 text-primary" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link shadow-sm border-0 rounded-pill mx-1 text-muted" aria-hidden="true">&raquo;</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const actions = document.querySelectorAll('.status-action');
+        actions.forEach(action => {
+            action.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const dropdown = this.closest('.dropdown');
+                if (dropdown.dataset.processing === "true") return;
+                dropdown.dataset.processing = "true";
+
+                dropdown.querySelectorAll('.status-action').forEach(opt => {
+                    opt.style.pointerEvents = 'none';
+                    opt.classList.add('opacity-50');
+                });
+
+                const apptId = this.getAttribute('data-appt-id');
+                const newStatus = this.getAttribute('data-value');
+
+                const dropdownBtn = dropdown.querySelector('.dropdown-toggle');
+                dropdownBtn.disabled = true;
+                dropdownBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+                fetch(`/provider/appointments/${apptId}/status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                    .then(res => {
+                        if (res.ok) {
+                            window.location.reload();
+                        } else {
+                            throw new Error("Validation failure");
+                        }
+                    })
+                    .catch(err => {
+                        alert("Permission Denied: Unable to execute status modification.");
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

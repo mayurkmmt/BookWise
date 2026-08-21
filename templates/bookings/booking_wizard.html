@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<section class="container mt-4 mb-2" aria-labelledby="wizard-heading">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <div class="mb-4 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <button type="button"
+                                    onclick="window.history.back()"
+                                    class="btn btn-light rounded-circle shadow-sm p-0 flex-shrink-0"
+                                    style="width: 40px; height: 40px; display: inline-flex; justify-content: center; align-items: center;"
+                                    title="Go Back">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                    class="bi bi-arrow-left" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd"
+                                        d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                </svg>
+
+                            </button>
+                            <div>
+                                <h3 id="wizard-heading" class="fw-bold font-poppins text-dark m-0">{{ services|length }}
+                                    {% if services|length == 1 %}Service{% else %}Services{% endif %} Selected</h3>
+                                <p class="text-muted m-0 small mt-1">{{ provider.business_name }} &bull; {{ total_duration }} min total &bull; ₹{{ total_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" id="bookingForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        {{ form.date }}
+                        {{ form.start_time }}
+
+                        <div class="row g-5">
+                            <!-- Step 1: Schedule -->
+                            <div class="col-md-7 border-end">
+                                {% if rescheduling %}
+                                <div class="alert alert-warning border-warning shadow-sm border-2 fw-medium text-dark">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-arrow-repeat me-2 mb-1" viewBox="0 0 16 16">
+                                        <path
+                                            d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+                                        <path fill-rule="evenodd"
+                                            d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+                                    </svg> Rescheduling Protocol Sequence initialized. Confirming a differing Timeline
+                                    overrides dependencies.</div>
+                                {% endif %}
+                                <h4 class="fw-bold font-poppins mb-4"><span class="text-primary me-2">1.</span>Select Date & Time</h4>
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark">Appointment Date</label>
+                                    <input type="date" class="form-control form-control-lg bg-light border-0 shadow-sm"
+                                        id="datePicker" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-dark">Available Time Slots</label>
+                                    <div id="timeSlotsContainer" class="d-flex flex-wrap gap-2">
+                                        <div
+                                            class="text-muted small w-100 py-4 text-center bg-light rounded shadow-sm border border-dashed">
+                                            Please select a date first to view availability.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Information -->
+                            <div class="col-md-5">
+                                <h4 class="fw-bold font-poppins mb-4"><span class="text-primary me-2">2.</span> Your
+                                    Details
+                                </h4>
+
+                                {% if request.user.is_authenticated or guest_rescheduling %}
+                                <div
+                                    class="bg-light p-4 rounded-4 mb-4 border border-primary border-opacity-25 shadow-sm">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-primary bg-gradient text-white rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 shadow-sm"
+                                            style="width: 48px; height: 48px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                fill="currentColor" class="bi bi-person-check">
+                                                <path
+                                                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.95a.5.5 0 1 1 .858.513ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                                                <path
+                                                    d="M8.256 14a4.474 4.474 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256Z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            {% if guest_rescheduling %}
+                                            <p class="m-0 fw-bold text-dark">Managing securely for {{ appointment.guest_email }}</p>
+                                            <p class="m-0 small text-muted">This booking is associated with this email.</p>
+                                            {% else %}
+                                            <p class="m-0 fw-bold text-dark">Logged in as {{ request.user.email }}</p>
+                                            <p class="m-0 small text-muted">Your booking securely associates with your
+                                                profile.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-none">
+                                    {{ form.guest_name|as_crispy_field }}
+                                    {{ form.guest_email|as_crispy_field }}
+                                    {{ form.guest_phone_number|as_crispy_field }}
+                                </div>
+                                {% else %}
+                                <div
+                                    class="alert alert-info border-0 shadow-sm bg-primary bg-opacity-10 d-flex align-items-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                                        class="bi bi-info-circle text-primary me-3 flex-shrink-0" viewBox="0 0 16 16">
+                                        <path
+                                            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                        <path
+                                            d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                                    </svg>
+                                    <div class="text-dark"><a href="{% url 'register' %}?next={{ request.path }}"
+                                            class="fw-bold text-primary text-decoration-underline">Register</a> or continue as a guest below.</div>
+                                </div>
+                                {{ form.guest_name|as_crispy_field }}
+                                {{ form.guest_email|as_crispy_field }}
+                                {{ form.guest_phone_number|as_crispy_field }}
+                                {% endif %}
+
+                                <hr class="my-4">
+
+                                <h5 class="fw-bold font-poppins mb-4">Selected {% if services|length == 1 %}Service{% else %}Services{% endif %}</h5>
+                                <div class="mb-4">
+                                    <ul class="list-group rounded-4 shadow-sm border-0 mb-4" style="max-height: 320px; overflow-y: auto;">
+                                        {% for s in services %}
+                                        <li class="list-group-item p-3 border-light d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center gap-3">
+                                                {% if s.image %}
+                                                <img src="{{ s.image.url }}" alt="{{ s.title }}" class="rounded-3 shadow-sm bg-white border" style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="bg-light rounded-3 d-flex align-items-center justify-content-center text-muted border border-dashed" style="width: 50px; height: 50px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-image" viewBox="0 0 16 16">
+                                                      <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                                      <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 3-2-2V3zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                                                    </svg>
+                                                </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="fw-bold m-0 text-dark">{{ s.title }}</h6>
+                                                    <small class="text-muted">{{ s.duration }} min</small>
+                                                </div>
+                                            </div>
+                                            <span class="fw-bold text-dark">₹{{ s.price }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+
+                                <div
+                                    class="d-flex justify-content-between align-items-center mb-4 border bg-light p-3 rounded shadow-sm">
+                                    <span class="fw-medium text-dark text-uppercase small tracking-wide">Total</span>
+                                    <span class="fs-4 fw-bold text-success">₹{{ total_price }}</span>
+                                </div>
+
+                                <button type="submit" id="submitBtn"
+                                    class="btn btn-primary bg-gradient btn-lg w-100 rounded-pill shadow-sm fw-bold border-0"
+                                    disabled>Confirm Booking</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const datePicker = document.getElementById('datePicker');
+        const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+        const hiddenDate = document.getElementById('id_date_hidden');
+        const hiddenTime = document.getElementById('id_start_time_hidden');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Algorithm bounds
+        const today = new Date().toISOString().split('T')[0];
+        datePicker.setAttribute('min', today);
+
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + 90);
+        datePicker.setAttribute('max', maxDate.toISOString().split('T')[0]);
+
+        let selectedSlotBtn = null;
+        let dateTimeout = null;
+
+        datePicker.addEventListener('change', function () {
+            const selectedDate = this.value;
+            if (!selectedDate) return;
+
+            clearTimeout(dateTimeout);
+            dateTimeout = setTimeout(() => {
+                hiddenDate.value = selectedDate;
+                hiddenTime.value = '';
+                submitBtn.disabled = true;
+                selectedSlotBtn = null;
+
+                timeSlotsContainer.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>';
+
+                // Fetch JSON natively via Django backend Engine
+                fetch(`/api/provider/{{ provider.id }}/available-times/?date=${selectedDate}&duration={{ total_duration }}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        timeSlotsContainer.innerHTML = '';
+
+                        if (data.error) {
+                            timeSlotsContainer.innerHTML = `<div class="alert alert-danger w-100 small">${data.error}</div>`;
+                            return;
+                        }
+
+                        if (data.slots.length === 0) {
+                            timeSlotsContainer.innerHTML = `
+                            <div class="text-muted small w-100 py-3 text-center border rounded shadow-sm bg-light text-dark fw-medium">
+                                No availability remains on this date.
+                            </div>`;
+                            return;
+                        }
+
+                        data.slots.forEach(slot => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'btn btn-outline-primary fw-bold shadow-sm rounded-pill px-4';
+
+                            const [h, m] = slot.split(':');
+                            const isPM = parseInt(h) >= 12;
+                            const h12 = parseInt(h) % 12 || 12;
+                            btn.textContent = `${h12}:${m} ${isPM ? 'PM' : 'AM'}`;
+
+                            btn.onclick = function () {
+                                if (selectedSlotBtn) {
+                                    selectedSlotBtn.classList.remove('active', 'btn-primary', 'text-white');
+                                    selectedSlotBtn.classList.add('btn-outline-primary');
+                                }
+                                btn.classList.remove('btn-outline-primary');
+                                btn.classList.add('active', 'btn-primary', 'text-white');
+
+                                selectedSlotBtn = btn;
+                                hiddenTime.value = slot;
+                                submitBtn.disabled = false;
+                            };
+
+                            timeSlotsContainer.appendChild(btn);
+                        });
+                    })
+                    .catch(err => {
+                        timeSlotsContainer.innerHTML = `<div class="alert alert-danger w-100 small border-0 shadow-sm">System timeout validating hours.</div>`;
+                    });
+            }, 300); // 300ms debounce to prevent browser double-firing
+        });
+
+        const form = document.getElementById('bookingForm');
+
+        // Dynamically integrate Django backend errors into HTML5 client validation
+        document.querySelectorAll('.form-control').forEach(input => {
+
+            // 1. If Crispy generated a backend error, trap it into HTML5 API
+            if (input.classList.contains('is-invalid')) {
+                const feedback = input.parentNode.querySelector('.invalid-feedback');
+                if (feedback) {
+                    input.setCustomValidity(feedback.innerText.trim());
+                }
+            }
+            // 2. Structurally require an invalid-feedback div for all fields so client-side works
+            else if (input.type !== 'hidden' && input.type !== 'submit') {
+                if (!input.parentNode.querySelector('.invalid-feedback')) {
+                    const label = input.parentNode.querySelector('label');
+                    const fieldName = label ? label.innerText.replace('*', '').trim() : 'value';
+                    const feedback = document.createElement('div');
+                    feedback.className = 'invalid-feedback fw-medium small mt-1';
+                    feedback.innerText = 'Please provide a valid ' + fieldName + '.';
+                    input.parentNode.appendChild(feedback);
+                }
+            }
+
+            // 3. Clear traps and markers immediately when user tries to repair
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                this.setCustomValidity(''); // Clear backend error lock!
+
+                // On typing, restore the text to default client-side fallback if we had overwritten it
+                const label = this.parentNode.querySelector('label');
+                const fieldName = label ? label.innerText.replace('*', '').trim() : 'value';
+                const feedback = this.parentNode.querySelector('.invalid-feedback');
+                if (feedback && feedback.innerText !== 'Please provide a valid ' + fieldName + '.') {
+                     feedback.innerText = 'Please provide a valid ' + fieldName + '.';
+                }
+            });
+        });
+
+        // Bootstrap client-side HTML5 validation interception
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                setTimeout(() => {
+                    if (submitBtn && submitBtn.hasAttribute('data-original-html')) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = submitBtn.getAttribute('data-original-html');
+                    }
+                }, 10);
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+</script>
+{% endblock %}
