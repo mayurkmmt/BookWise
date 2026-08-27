@@ -1,6 +1,7 @@
 import datetime
 import json
 import random
+import threading
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -201,7 +202,7 @@ class BookingService:
         )
         msg.attach_alternative(html_content, "text/html")
         # Send immediately since DB isn't locked on guest intent
-        msg.send(fail_silently=True)
+        threading.Thread(target=msg.send, kwargs={"fail_silently": True}).start()
 
     @staticmethod
     @transaction.atomic

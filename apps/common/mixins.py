@@ -15,7 +15,12 @@ class ProviderRequiredMixin(UserPassesTestMixin):
             from apps.services.models import ServiceProvider
 
             ServiceProvider.objects.get_or_create(
-                user=request.user, defaults={"business_name": request.user.email}
+                user=request.user,
+                defaults={
+                    "business_name": request.user.email,
+                    "created_by": request.user,
+                    "modified_by": request.user,
+                },
             )
         return super().dispatch(request, *args, **kwargs)
 

@@ -1,4 +1,5 @@
 import random
+import threading
 
 from django.conf import settings
 from django.contrib import messages
@@ -82,7 +83,7 @@ class UserRegisterView(View):
                 [email],
             )
             msg.attach_alternative(html_content, "text/html")
-            msg.send(fail_silently=True)
+            threading.Thread(target=msg.send, kwargs={"fail_silently": True}).start()
             return redirect("register_otp_verify")
         return render(request, self.template_name, {"form": form})
 
@@ -123,7 +124,7 @@ class OTPVerifyView(View):
                 [email],
             )
             msg.attach_alternative(html_content, "text/html")
-            msg.send(fail_silently=True)
+            threading.Thread(target=msg.send, kwargs={"fail_silently": True}).start()
 
             messages.success(
                 request, "A new verification code has been sent to your email."
@@ -143,6 +144,9 @@ class OTPVerifyView(View):
         form = CustomUserCreationForm(post_data)
         if form.is_valid():
             user = form.save()
+            user.created_by = user
+            user.modified_by = user
+            user.save(update_fields=["created_by", "modified_by"])
             login(request, user)
 
             otp_record.delete()
@@ -206,7 +210,12 @@ class ProfileEditView(LoginRequiredMixin, View):
         provider_form = None
         if request.user.role == "provider":
             provider, _ = ServiceProvider.objects.get_or_create(
-                user=request.user, defaults={"business_name": request.user.email}
+                user=request.user,
+                defaults={
+                    "business_name": request.user.email,
+                    "created_by": request.user,
+                    "modified_by": request.user,
+                },
             )
             provider_form = ServiceProviderForm(instance=provider)
 
@@ -220,7 +229,14 @@ class ProfileEditView(LoginRequiredMixin, View):
         user_form = UserProfileEditForm(request.POST, instance=request.user)
         provider_form = None
         if request.user.role == "provider":
-            provider, _ = ServiceProvider.objects.get_or_create(user=request.user)
+            provider, _ = ServiceProvider.objects.get_or_create(
+                user=request.user,
+                defaults={
+                    "business_name": request.user.email,
+                    "created_by": request.user,
+                    "modified_by": request.user,
+                },
+            )
             provider_form = ServiceProviderForm(
                 request.POST, request.FILES, instance=provider
             )

@@ -37,6 +37,10 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-    def delete(self, *args, **kwargs):
+    def delete(self, user=None, *args, **kwargs):
         self.is_delete = True
-        self.save(update_fields=["is_delete"])
+        update_fields = ["is_delete"]
+        if user:
+            self.modified_by = user
+            update_fields.append("modified_by")
+        self.save(update_fields=update_fields)

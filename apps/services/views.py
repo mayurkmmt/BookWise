@@ -282,5 +282,9 @@ class ServiceDeleteView(ProviderRequiredMixin, ProviderDataIsolationMixin, Delet
         return context
 
     def form_valid(self, form):
+        from django.http import HttpResponseRedirect
+
         messages.success(self.request, "Service successfully deleted.")
-        return super().form_valid(form)
+        success_url = self.get_success_url()
+        self.object.delete(user=self.request.user)
+        return HttpResponseRedirect(success_url)

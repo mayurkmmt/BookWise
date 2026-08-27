@@ -1,6 +1,7 @@
 import datetime
 import json
 import random
+import threading
 
 from django.conf import settings
 from django.contrib import messages
@@ -255,7 +256,7 @@ class GuestBookingOTPVerifyView(View):
                 [guest_email],
             )
             msg.attach_alternative(html_content, "text/html")
-            msg.send(fail_silently=True)
+            threading.Thread(target=msg.send, kwargs={"fail_silently": True}).start()
 
             messages.success(
                 request, "A new verification code has been sent to your email."
