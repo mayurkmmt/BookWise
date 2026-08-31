@@ -1,0 +1,34 @@
+# Render Blueprint for BookWise (free tier).
+# Database is hosted separately on Neon (persistent free Postgres) and supplied
+# via the DATABASE_URL environment variable.
+services:
+  - type: web
+    name: bookwise
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    preDeployCommand: "python manage.py migrate --no-input"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: PYTHON_VERSION
+        value: "3.10.14"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: SECRET_KEY
+        generateValue: true # Render generates a strong random secret
+      - key: EMAIL_BACKEND
+        value: anymail.backends.mailjet.EmailBackend
+      # ---- Set these manually in the Render dashboard (marked secret) ----
+      - key: DATABASE_URL
+        sync: false # paste your Neon connection string
+      - key: CLOUDINARY_URL
+        sync: false # cloudinary://<api_key>:<api_secret>@<cloud_name>
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_SECRET_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false # e.g. BookWise <you@yourdomain.com>
