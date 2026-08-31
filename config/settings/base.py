@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "auditlog",
     "phonenumber_field",
+    "anymail",
     # Local apps
     "apps.common",
     "apps.accounts",
@@ -91,5 +92,15 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
-# Since we don't have SMPT fully hooked up yet, let password reset emails print to console on local server.
+# ---------------------------------------------------------------------------
+# Email — sent through Mailjet via django-anymail (HTTPS API, not SMTP).
+# The actual backend is chosen per-environment (console in dev, Mailjet in prod).
+# ---------------------------------------------------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+ANYMAIL = {
+    "MAILJET_API_KEY": os.getenv("MAILJET_API_KEY", ""),
+    "MAILJET_SECRET_KEY": os.getenv("MAILJET_SECRET_KEY", ""),
+}
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@bookwise.com")

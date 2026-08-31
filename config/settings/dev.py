@@ -17,11 +17,9 @@ DATABASES = {
     }
 }
 
+# Locally, emails print to the console by default. To test real Mailjet delivery
+# in dev, set EMAIL_BACKEND=anymail.backends.mailjet.EmailBackend in your .env
+# along with MAILJET_API_KEY / MAILJET_SECRET_KEY (see base.py ANYMAIL settings).
 EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
