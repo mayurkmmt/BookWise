@@ -159,14 +159,10 @@
                     body: JSON.stringify({ status: newStatus })
                 })
                 .then(res => {
-                    if (res.ok) {
-                        window.location.reload();
-                    } else {
-                        throw new Error("Validation failure");
-                    }
+                    window.location.reload();
                 })
                 .catch(err => {
-                    alert("Permission Denied: Unable to execute status modification.");
+                    window.location.reload();
                 });
             });
         });

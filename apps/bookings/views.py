@@ -6,7 +6,6 @@ import threading
 from django.conf import settings
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
-from django.db import transaction
 from django.db.models import (
     Case,
     CharField,
@@ -27,9 +26,9 @@ from django.utils.html import strip_tags
 from django.views import View
 from django.views.generic import DetailView, FormView, ListView
 
-from apps.accounts.models import OTPVerification, User
+from apps.accounts.models import OTPVerification
 from apps.bookings.forms import BookingForm
-from apps.bookings.models import Appointment, AppointmentService
+from apps.bookings.models import Appointment
 from apps.bookings.services import BookingService, BookingVerificationError
 from apps.bookings.utils import send_booking_email
 from apps.common.mixins import (
@@ -279,51 +278,16 @@ class GuestBookingOTPVerifyView(View):
                 },
             )
 
-        booking_data = json.loads(otp_record.registration_data)
+        try:
+            appointment = BookingService.finalize_guest_booking(otp_record, request)
+        except BookingVerificationError as e:
+            if "guest_booking_email" in request.session:
+                del request.session["guest_booking_email"]
+            messages.error(request, str(e))
+            return redirect("home")
 
-        guest_email = booking_data["guest_email"]
-        matched_user = User.objects.filter(email=guest_email).first()
-
-        provider = ServiceProvider.objects.get(id=booking_data["provider_id"])
-
-        date = datetime.date.fromisoformat(booking_data["date"])
-        start_time = datetime.time.fromisoformat(booking_data["start_time"])
-        end_time = datetime.time.fromisoformat(booking_data["end_time"])
-
-        appointment = Appointment(
-            provider=provider,
-            date=date,
-            start_time=start_time,
-            end_time=end_time,
-            status="pending",
-        )
-
-        if matched_user:
-            appointment.customer_user = matched_user
-            appointment.created_by = matched_user
-            appointment.modified_by = matched_user
-        else:
-            appointment.guest_name = booking_data["guest_name"]
-            appointment.guest_email = guest_email
-            appointment.guest_phone_number = booking_data["guest_phone_number"]
-
-        appointment.save()
-
-        services = Service.objects.filter(id__in=booking_data["service_ids"])
-        for s in services:
-            AppointmentService.objects.create(
-                appointment=appointment,
-                service=s,
-                service_price=s.price,
-                service_duration=s.duration,
-                created_by=matched_user if matched_user else None,
-                modified_by=matched_user if matched_user else None,
-            )
-
-        send_booking_email(appointment, "booked", request)
-
-        otp_record.delete()
-        del request.session["guest_booking_email"]
+        if "guest_booking_email" in request.session:
+            del request.session["guest_booking_email"]
 
         return redirect(
             "booking_success", booking_reference=appointment.booking_reference
@@ -460,6 +424,18 @@ class UpdateAppointmentStatusView(ProviderRequiredMixin, View):
                 {"status": "error", "message": "Appointment not found"}, status=404
             )
 
+        if appointment.status in ["cancelled", "completed"]:
+            messages.error(
+                request, f"Cannot update status of a {appointment.status} appointment."
+            )
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": f"Cannot update status of a {appointment.status} appointment.",
+                },
+                status=400,
+            )
+
         if new_status in dict(Appointment.STATUS_CHOICES):
             appointment.status = new_status
             appointment.modified_by = request.user
@@ -566,43 +542,24 @@ class CustomerCancelAppointmentView(CustomerRequiredMixin, View):
             messages.error(request, "Appointment lookup failed.")
             return redirect("customer_appointments")
 
-        now = timezone.now()
-        dt_start = datetime.datetime.combine(appointment.date, appointment.start_time)
-        dt_start = timezone.make_aware(dt_start, timezone.get_current_timezone())
+        try:
+            BookingService.cancel_appointment(appointment, request.user, request)
+            messages.success(request, "Booking successfully retracted and cancelled.")
+        except BookingVerificationError as e:
+            messages.error(request, str(e))
 
-        if dt_start < (now + datetime.timedelta(hours=24)):
-            messages.error(
-                request,
-                "Appointments cannot be cancelled within 24 hours of the scheduled time. Please contact the provider directly.",
-            )
-            return redirect("customer_appointments")
-
-        if appointment.status == "confirmed":
-            messages.error(
-                request,
-                "Confirmed appointments cannot be cancelled. Please contact the provider directly.",
-            )
-            return redirect("customer_appointments")
-
-        if appointment.status in ["cancelled", "completed"]:
-            messages.error(
-                request, "Cannot alter historical or previously cancelled bookings."
-            )
-            return redirect("customer_appointments")
-
-        appointment.status = "cancelled"
-        appointment.modified_by = request.user
-        appointment.save(update_fields=["status", "modified_by"])
-
-        send_booking_email(appointment, "cancelled", request)
-
-        messages.success(request, "Booking successfully retracted and cancelled.")
         return redirect("customer_appointments")
 
 
 class CustomerRescheduleEngineView(CustomerRequiredMixin, FormView):
     template_name = "bookings/booking_wizard.html"
     form_class = BookingForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = self.request
+        kwargs["is_reschedule"] = True
+        return kwargs
 
     def get_appointment(self):
         return get_object_or_404(
@@ -840,45 +797,12 @@ class GuestCancelAppointmentView(View):
             messages.error(request, "Appointment lookup failed.")
             return redirect("home")
 
-        now = timezone.now()
-        dt_start = datetime.datetime.combine(appointment.date, appointment.start_time)
-        dt_start = timezone.make_aware(dt_start, timezone.get_current_timezone())
+        try:
+            BookingService.cancel_appointment(appointment, None, request)
+            messages.success(request, "Booking successfully retracted and cancelled.")
+        except BookingVerificationError as e:
+            messages.error(request, str(e))
 
-        if dt_start < (now + datetime.timedelta(hours=24)):
-            messages.error(
-                request,
-                "Appointments cannot be cancelled within 24 hours of the scheduled time. Please contact the provider directly.",
-            )
-            return redirect(
-                "guest_manage_appointment",
-                booking_reference=appointment.booking_reference,
-            )
-
-        if appointment.status == "confirmed":
-            messages.error(
-                request,
-                "Confirmed appointments cannot be cancelled. Please contact the provider directly.",
-            )
-            return redirect(
-                "guest_manage_appointment",
-                booking_reference=appointment.booking_reference,
-            )
-
-        if appointment.status in ["cancelled", "completed"]:
-            messages.error(
-                request, "Cannot alter historical or previously cancelled bookings."
-            )
-            return redirect(
-                "guest_manage_appointment",
-                booking_reference=appointment.booking_reference,
-            )
-
-        appointment.status = "cancelled"
-        appointment.save(update_fields=["status"])
-
-        send_booking_email(appointment, "cancelled", request)
-
-        messages.success(request, "Booking successfully retracted and cancelled.")
         return redirect(
             "guest_manage_appointment", booking_reference=appointment.booking_reference
         )
@@ -959,78 +883,19 @@ class GuestRescheduleEngineView(FormView):
         return context
 
     def form_valid(self, form):
+        appointment = self.get_appointment()
+        start_time = form.cleaned_data["start_time"]
+        date = form.cleaned_data["date"]
 
-        with transaction.atomic():
-            appointment = self.get_appointment()
-            provider = ServiceProvider.objects.select_for_update().get(
-                pk=appointment.provider.pk
+        try:
+            appointment = BookingService.reschedule_appointment(
+                appointment, date, start_time, None, self.request
             )
+        except BookingVerificationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
 
-            start_time = form.cleaned_data["start_time"]
-            date = form.cleaned_data["date"]
-
-            now = timezone.now()
-
-            dt_start = datetime.datetime.combine(date, start_time)
-            dt_start = timezone.make_aware(dt_start, timezone.get_current_timezone())
-            if dt_start < (now + datetime.timedelta(minutes=59)):
-                messages.error(
-                    self.request,
-                    "Appointments must be booked at least 1 hour in advance.",
-                )
-                return self.form_invalid(form)
-
-            if dt_start > (now + datetime.timedelta(days=90)):
-                messages.error(
-                    self.request,
-                    "Appointments cannot be rescheduled more than 90 days in advance.",
-                )
-                return self.form_invalid(form)
-
-            total_duration = sum(
-                s.service_duration for s in appointment.appointment_services.all()
-            )
-            dt_end = dt_start + datetime.timedelta(minutes=total_duration)
-            end_time = dt_end.time()
-
-            appointments = (
-                Appointment.objects.filter(
-                    provider=provider, date=date, is_delete=False
-                )
-                .exclude(status__in=["cancelled", "rescheduled"])
-                .exclude(pk=appointment.pk)
-            )
-
-            is_available = True
-            for appt in appointments:
-                appt_start = datetime.datetime.combine(date, appt.start_time)
-                appt_start = timezone.make_aware(
-                    appt_start, timezone.get_current_timezone()
-                )
-                appt_end = datetime.datetime.combine(date, appt.end_time)
-                appt_end = timezone.make_aware(
-                    appt_end, timezone.get_current_timezone()
-                )
-                if max(dt_start, appt_start) < min(dt_end, appt_end):
-                    is_available = False
-                    break
-
-            if not is_available:
-                messages.error(
-                    self.request,
-                    "We're sorry! This heavily trafficked time slot is booked. Please select a different time.",
-                )
-                return self.form_invalid(form)
-
-            appointment.date = date
-            appointment.start_time = start_time
-            appointment.end_time = end_time
-            appointment.status = "pending"
-            appointment.save(update_fields=["date", "start_time", "end_time", "status"])
-
-            send_booking_email(appointment, "rescheduled", self.request)
-
-            return redirect(
-                "guest_manage_appointment",
-                booking_reference=appointment.booking_reference,
-            )
+        return redirect(
+            "guest_manage_appointment",
+            booking_reference=appointment.booking_reference,
+        )

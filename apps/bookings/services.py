@@ -206,11 +206,77 @@ class BookingService:
 
     @staticmethod
     @transaction.atomic
+    def finalize_guest_booking(
+        otp_record: OTPVerification, request: HttpRequest
+    ) -> Appointment:
+        booking_data = json.loads(otp_record.registration_data)
+
+        guest_email = booking_data["guest_email"]
+        matched_user = User.objects.filter(email=guest_email).first()
+
+        provider = ServiceProvider.objects.select_for_update().get(
+            id=booking_data["provider_id"]
+        )
+
+        date = datetime.date.fromisoformat(booking_data["date"])
+        start_time = datetime.time.fromisoformat(booking_data["start_time"])
+        end_time = datetime.time.fromisoformat(booking_data["end_time"])
+
+        services = Service.objects.filter(id__in=booking_data["service_ids"])
+        total_duration = sum(s.duration for s in services)
+
+        BookingService.check_time_constraints(date, start_time, total_duration)
+
+        if not BookingService.is_slot_available(provider, date, start_time, end_time):
+            otp_record.delete()
+            raise BookingVerificationError(
+                "We're sorry! This time slot was just booked by another user. Please restart the booking process for a different time."
+            )
+
+        appointment = Appointment(
+            provider=provider,
+            date=date,
+            start_time=start_time,
+            end_time=end_time,
+            status="pending",
+        )
+
+        if matched_user:
+            appointment.customer_user = matched_user
+            appointment.created_by = matched_user
+            appointment.modified_by = matched_user
+        else:
+            appointment.guest_name = booking_data["guest_name"]
+            appointment.guest_email = guest_email
+            appointment.guest_phone_number = booking_data["guest_phone_number"]
+
+        appointment.save()
+
+        for s in services:
+            AppointmentService.objects.create(
+                appointment=appointment,
+                service=s,
+                service_price=s.price,
+                service_duration=s.duration,
+                created_by=matched_user if matched_user else None,
+                modified_by=matched_user if matched_user else None,
+            )
+
+        # Dispatch email post-commit
+        transaction.on_commit(
+            lambda: send_booking_email(appointment, "booked", request)
+        )
+
+        otp_record.delete()
+        return appointment
+
+    @staticmethod
+    @transaction.atomic
     def reschedule_appointment(
         appointment: Appointment,
         date: datetime.date,
         start_time: datetime.time,
-        user: User,
+        user: User | None,
         request: HttpRequest,
     ) -> Appointment:
 
@@ -243,5 +309,50 @@ class BookingService:
 
         transaction.on_commit(
             lambda: send_booking_email(appointment, "rescheduled", request)
+        )
+        return appointment
+
+    @staticmethod
+    @transaction.atomic
+    def cancel_appointment(
+        appointment: Appointment,
+        user: User | None,
+        request: HttpRequest,
+        is_provider: bool = False,
+    ) -> Appointment:
+        if appointment.status in ["cancelled", "completed"]:
+            raise BookingVerificationError(
+                "Cannot alter historical or previously cancelled bookings."
+            )
+
+        if not is_provider:
+            now = timezone.now()
+            dt_start = datetime.datetime.combine(
+                appointment.date, appointment.start_time
+            )
+            if timezone.is_naive(dt_start):
+                dt_start = timezone.make_aware(
+                    dt_start, timezone.get_current_timezone()
+                )
+
+            if dt_start < (now + datetime.timedelta(hours=24)):
+                raise BookingVerificationError(
+                    "Appointments cannot be cancelled within 24 hours of the scheduled time. Please contact the provider directly."
+                )
+
+            if appointment.status == "confirmed":
+                raise BookingVerificationError(
+                    "Confirmed appointments cannot be cancelled. Please contact the provider directly."
+                )
+
+        appointment.status = "cancelled"
+        if user:
+            appointment.modified_by = user
+        appointment.save(
+            update_fields=["status", "modified_by"] if user else ["status"]
+        )
+
+        transaction.on_commit(
+            lambda: send_booking_email(appointment, "cancelled", request)
         )
         return appointment
